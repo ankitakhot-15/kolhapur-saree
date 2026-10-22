@@ -5,6 +5,7 @@ import path from 'path';
 import type { IncomingMessage, ServerResponse } from 'http';
 import { defineConfig, loadEnv, Plugin } from 'vite';
 import nodemailer from 'nodemailer';
+import { cloudinaryPlugin } from './src/cloudinary-plugin';
 
 type Env = Record<string, string>;
 
@@ -300,7 +301,7 @@ export default defineConfig(({ mode }) => {
   });
 
   return {
-    plugins: [react(), tailwindcss(), emailDispatcherPlugin(env)],
+    plugins: [react(), tailwindcss(), emailDispatcherPlugin(env),cloudinaryPlugin(env)],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.')
