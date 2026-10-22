@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Sparkles, 
-  ArrowRight, 
-  Filter, 
-  Check, 
-  Star, 
-  ShieldCheck, 
-  Heart, 
-  SlidersHorizontal 
+import {
+  Sparkles,
+  ArrowRight,
+  Filter,
+  Check,
+  Star,
+  ShieldCheck,
+  Heart,
+  SlidersHorizontal
 } from 'lucide-react';
 import { SareeProduct, CategoryItem, PromotionalOffer, Order } from './types/index.ts';
 import { storeService } from './services/storeService.ts';
@@ -42,6 +42,7 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'newest' | 'price-asc' | 'price-desc' | 'popularity' | 'discount'>('newest');
   const [selectedFabric, setSelectedFabric] = useState<string>('All');
+  const [minimumPrice, setMinimumPrice] = useState('');
 
   // Reactive data
   const [products, setProducts] = useState<SareeProduct[]>(() => storeService.getProducts());
@@ -86,6 +87,7 @@ export default function App() {
   const filteredProducts = storeService.getProducts({
     category: selectedCategory === 'All' ? undefined : selectedCategory,
     fabric: selectedFabric === 'All' ? undefined : selectedFabric,
+    minPrice: minimumPrice ? Number(minimumPrice) : undefined,
     search: searchQuery || undefined,
     sort: sortBy
   });
@@ -126,11 +128,11 @@ export default function App() {
 
       {/* Main Views */}
       <main className="flex-1">
-        
+
         {/* VIEW 1: HOME */}
         {currentView === 'home' && (
           <div className="space-y-16">
-            
+
             {/* Promotional Hero Carousel */}
             <HeroCarousel onNavigate={handleNavigate} />
 
@@ -279,7 +281,7 @@ export default function App() {
         {/* VIEW 2: FULL CATALOG */}
         {currentView === 'catalog' && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-            
+
             {/* Catalog Banner & Title */}
             <div className="pb-4 border-b border-[#E6E0D8]">
               <span className="text-xs font-semibold uppercase tracking-wider text-[#641D32]">
@@ -292,7 +294,7 @@ export default function App() {
 
             {/* Interactive Filters Bar (Single-line segmented tabs) */}
             <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-xl border border-[#E6E0D8] shadow-xs">
-              
+
               {/* Category Filter Chips */}
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                 <button
@@ -320,8 +322,8 @@ export default function App() {
                 ))}
               </div>
 
-              {/* Sorting and Fabric Controls */}
-              <div className="flex items-center gap-3 shrink-0 text-xs">
+              {/* Catalog filters */}
+              <div className="flex flex-wrap items-center gap-3 shrink-0 text-xs">
                 <div className="flex items-center gap-1.5">
                   <span className="text-[#766B61] hidden sm:inline">Fabric:</span>
                   <select
@@ -336,6 +338,21 @@ export default function App() {
                     <option value="Georgette">Georgette</option>
                   </select>
                 </div>
+
+                <label className="flex items-center gap-1.5">
+                  <span className="text-[#766B61] whitespace-nowrap">Min price:</span>
+                  <span className="text-[#766B61]">₹</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="100"
+                    value={minimumPrice}
+                    onChange={(e) => setMinimumPrice(e.target.value)}
+                    placeholder="Any"
+                    aria-label="Minimum price in rupees"
+                    className="w-24 p-1.5 bg-[#FAF7F0] border border-[#E6E0D8] rounded font-medium text-[#292522] focus:outline-none"
+                  />
+                </label>
 
                 <div className="flex items-center gap-1.5">
                   <span className="text-[#766B61] hidden sm:inline">Sort:</span>
@@ -363,6 +380,7 @@ export default function App() {
                   onClick={() => {
                     setSelectedCategory('All');
                     setSelectedFabric('All');
+                    setMinimumPrice('');
                     setSearchQuery('');
                   }}
                   className="px-4 py-2 bg-[#641D32] text-white text-xs font-semibold rounded hover:bg-[#4A1223]"

@@ -12,6 +12,7 @@ export interface SareeVariant {
   variantId: string;
   colorName: string;
   colorHex: string;
+  
   sku: string;
   originalPricePaise: number;
   sellingPricePaise: number;

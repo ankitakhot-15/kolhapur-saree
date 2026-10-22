@@ -27,6 +27,7 @@ import {
 } from '../data/initialData.ts';
 
 const STORAGE_KEY_PRODUCTS = 'kfs_products_v1';
+const STORAGE_KEY_FILTER_SAMPLE_MIGRATION = 'kfs_filter_sample_migration_v1';
 const STORAGE_KEY_CATEGORIES = 'kfs_categories_v1';
 const STORAGE_KEY_BANNERS = 'kfs_banners_v1';
 const STORAGE_KEY_OFFERS = 'kfs_offers_v1';
@@ -39,6 +40,7 @@ const STORAGE_KEY_CART = 'kfs_cart_v1';
 const STORAGE_KEY_WISHLIST = 'kfs_wishlist_v1';
 const STORAGE_KEY_ADDRESSES = 'kfs_addresses_v1';
 const STORAGE_KEY_USER = 'kfs_user_session_v1';
+const SEED_PRODUCTS_VERSION = '2026-10-filters-v3';
 
 // True only while running `npm run dev` (avoids needing vite/client typings here).
 const IS_DEV: boolean = (import.meta as any).env?.DEV === true;
@@ -101,6 +103,21 @@ class StoreService {
     try {
       const p = localStorage.getItem(STORAGE_KEY_PRODUCTS);
       this.products = p ? JSON.parse(p) : [...INITIAL_PRODUCTS];
+      if (p && localStorage.getItem(STORAGE_KEY_FILTER_SAMPLE_MIGRATION) !== '1') {
+        const existingIds = new Set(this.products.map(product => product.id));
+        const sampleProducts = INITIAL_PRODUCTS.filter(
+          product => product.id.startsWith('filter-demo-') && !existingIds.has(product.id)
+        );
+        this.products.push(...sampleProducts);
+        try {
+          if (sampleProducts.length > 0) {
+            localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(this.products));
+          }
+          localStorage.setItem(STORAGE_KEY_FILTER_SAMPLE_MIGRATION, '1');
+        } catch (error) {
+          console.error('Failed to migrate filter sample products', error);
+        }
+      }
 
       const c = localStorage.getItem(STORAGE_KEY_CATEGORIES);
       this.categories = c ? JSON.parse(c) : [...INITIAL_CATEGORIES];

@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { Heart, Eye, ShoppingBag } from 'lucide-react';
-import { SareeProduct, SareeVariant } from '../types/index.ts';
-import { formatPriceINR, calculateDiscountPercent } from '../utils/formatters.ts';
-import { storeService } from '../services/storeService.ts';
+import React, { useState } from "react";
+import { Heart, Eye, ShoppingBag } from "lucide-react";
+import { SareeProduct, SareeVariant } from "../types/index.ts";
+import {
+  formatPriceINR,
+  calculateDiscountPercent,
+} from "../utils/formatters.ts";
+import { storeService } from "../services/storeService.ts";
 
 interface ProductCardProps {
   product: SareeProduct;
@@ -15,14 +18,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   onSelectProduct,
   onQuickView,
-  onAddToCartSuccess
+  onAddToCartSuccess,
 }) => {
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(() => {
     return storeService.getWishlist().includes(product.id);
   });
 
-  const variant: SareeVariant = product.variants[selectedVariantIndex] || product.variants[0];
+  const variant: SareeVariant =
+    product.variants[selectedVariantIndex] || product.variants[0];
   const originalPrice = variant.originalPricePaise;
   const sellingPrice = variant.sellingPricePaise;
   const discountPercent = calculateDiscountPercent(originalPrice, sellingPrice);
@@ -53,16 +57,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       originalPricePaise: variant.originalPricePaise,
       quantity: 1,
       sku: variant.sku,
-      fabric: product.fabric
+      fabric: product.fabric,
     });
 
     if (onAddToCartSuccess) {
-      onAddToCartSuccess(`Added ${product.name} (${variant.colorName}) to your shopping bag.`);
+      onAddToCartSuccess(
+        `Added ${product.name} (${variant.colorName}) to your shopping bag.`,
+      );
     }
   };
 
   return (
-    <div 
+    <div
       onClick={() => onSelectProduct(product)}
       className="group bg-white rounded-lg border border-[#E6E0D8] overflow-hidden flex flex-col hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer text-left"
     >
@@ -95,7 +101,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           className="absolute top-3 right-3 p-2 rounded-full bg-white/90 hover:bg-white text-[#292522] shadow-sm transition-transform active:scale-90 z-10"
           aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-[#641D32] text-[#641D32]' : 'hover:text-[#641D32]'}`} />
+          <Heart
+            className={`w-4 h-4 ${isWishlisted ? "fill-[#641D32] text-[#641D32]" : "hover:text-[#641D32]"}`}
+          />
         </button>
 
         {/* Quick View & Quick Add floating bar */}
@@ -130,7 +138,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <div className="flex items-center gap-1.5 text-xs text-[#766B61] mb-1">
             <span className="truncate">{product.fabric}</span>
             <span aria-hidden="true">·</span>
-            <span className="truncate">{product.categoryNames[0] || 'Handloom'}</span>
+            <span className="truncate">
+              {product.categoryNames[0] || "Handloom"}
+            </span>
           </div>
 
           {/* Saree Title */}
@@ -141,13 +151,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Color Swatches */}
         {product.variants.length > 1 && (
-          <div className="flex items-center gap-1.5 pt-1" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="flex items-center gap-1.5 pt-1"
+            onClick={(e) => e.stopPropagation()}
+          >
             {product.variants.map((v, idx) => (
               <button
                 key={v.variantId}
                 onClick={() => setSelectedVariantIndex(idx)}
                 className={`w-4 h-4 rounded-full border transition-transform ${
-                  idx === selectedVariantIndex ? 'ring-2 ring-[#641D32] ring-offset-1 scale-110' : 'border-[#E6E0D8] hover:scale-105'
+                  idx === selectedVariantIndex
+                    ? "ring-2 ring-[#641D32] ring-offset-1 scale-110"
+                    : "border-[#E6E0D8] hover:scale-105"
                 }`}
                 style={{ backgroundColor: v.colorHex }}
                 title={v.colorName}
@@ -155,7 +170,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               />
             ))}
             <span className="text-[11px] text-[#766B61] ml-1">
-              {variant.colorName.split('&')[0]}
+              {variant.colorName.split("&")[0]}
             </span>
           </div>
         )}
@@ -176,9 +191,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* Stock availability indicator */}
           <div className="text-right">
             {isOutOfStock ? (
-              <span className="text-[11px] font-medium text-red-600">Out of Stock</span>
+              <span className="text-[11px] font-medium text-red-600">
+                Out of Stock
+              </span>
             ) : isLowStock ? (
-              <span className="text-[11px] font-medium text-amber-700">Only {availableStock} left</span>
+              <span className="text-[11px] font-medium text-amber-700">
+                Only {availableStock} left
+              </span>
             ) : (
               <span className="text-[11px] text-[#766B61]">Handloom Stock</span>
             )}
