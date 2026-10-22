@@ -1,3 +1,6 @@
+
+
+// export const storeService = new StoreService();
 import {
   SareeProduct,
   CategoryItem,
@@ -37,6 +40,18 @@ const STORAGE_KEY_WISHLIST = 'kfs_wishlist_v1';
 const STORAGE_KEY_ADDRESSES = 'kfs_addresses_v1';
 const STORAGE_KEY_USER = 'kfs_user_session_v1';
 
+// True only while running `npm run dev` (avoids needing vite/client typings here).
+const IS_DEV: boolean = (import.meta as any).env?.DEV === true;
+
+// NOTE: client-side admin check is for demo only. A live store must verify roles on a server.
+const ADMIN_EMAILS = ['ankitakhot015@gmail.com', 'akashkhot73@gmail.com'];
+
+// How long an OTP stays valid. Change this ONE number (keep it between 1 and 60).
+export const OTP_VALIDITY_MINUTES = 10;
+
+// Unpaid orders hold stock only this long, then the stock is released automatically.
+export const PENDING_ORDER_TTL_MINUTES = 15;
+
 export interface DispatchedEmail {
   id: string;
   to: string;
@@ -44,6 +59,18 @@ export interface DispatchedEmail {
   subject: string;
   sentAt: string;
   otp: string;
+}
+
+export interface OtpEmailResult {
+  emailSent: boolean;
+  emailError: string | null;
+}
+
+export interface OtpRequestResult {
+  challengeId: string;
+  expiresAt: number;
+  // Resolves once the email server answers. Optional to await.
+  emailResult: Promise<OtpEmailResult>;
 }
 
 class StoreService {
@@ -66,6 +93,8 @@ class StoreService {
 
   constructor() {
     this.loadState();
+    this.expireStalePendingOrders();
+    this.sanitizeCart();
   }
 
   private loadState() {
@@ -131,6 +160,7 @@ class StoreService {
       this.coupons = [...INITIAL_COUPONS];
       this.orders = this.createInitialSampleOrders();
       this.inventoryMovements = this.createInitialMovements();
+      this.auditLogs = [];
       this.settings = { ...INITIAL_SETTINGS };
       this.session = null;
       this.cart = [];
@@ -339,8 +369,12 @@ class StoreService {
             break;
           case 'discount':
             result.sort((a, b) => {
-              const discA = a.variants[0] ? (a.variants[0].originalPricePaise - a.variants[0].sellingPricePaise) / a.variants[0].originalPricePaise : 0;
-              const discB = b.variants[0] ? (b.variants[0].originalPricePaise - b.variants[0].sellingPricePaise) / b.variants[0].originalPricePaise : 0;
+              const discA = a.variants[0] && a.variants[0].originalPricePaise
+                ? (a.variants[0].originalPricePaise - a.variants[0].sellingPricePaise) / a.variants[0].originalPricePaise
+                : 0;
+              const discB = b.variants[0] && b.variants[0].originalPricePaise
+                ? (b.variants[0].originalPricePaise - b.variants[0].sellingPricePaise) / b.variants[0].originalPricePaise
+                : 0;
               return discB - discA;
             });
             break;
@@ -499,10 +533,9 @@ class StoreService {
 
   // --- BANNERS ---
   public getBanners(activeOnly = true): PromotionalBanner[] {
-    if (activeOnly) {
-      return this.banners.filter(b => b.isActive).sort((a, b) => a.sortOrder - b.sortOrder);
-    }
-    return this.banners.sort((a, b) => a.sortOrder - b.sortOrder);
+    // Copy before sorting so we never reorder the stored array in place.
+    const list = activeOnly ? this.banners.filter(b => b.isActive) : [...this.banners];
+    return list.sort((a, b) => a.sortOrder - b.sortOrder);
   }
 
   public saveBanner(banner: Partial<PromotionalBanner>, actor: string): PromotionalBanner {
@@ -733,7 +766,7 @@ class StoreService {
       if (available < item.quantity) {
         return {
           success: false,
-          message: `Insufficient inventory for ${product.name} (${variant.colorName}). Only ${available} available in handloom stock.`
+          message: `Insufficient inventory for ${product.name} (${variant.colorName}). Only ${available} available in handloom stock. Please reduce the quantity in your bag.`
         };
       }
     }
@@ -765,6 +798,7 @@ class StoreService {
     return { success: true };
   }
 
+  // For orders that are NOT yet paid: give the reserved units back.
   public releaseOrderReservation(order: Order, reason = 'Order cancelled / Payment expired') {
     for (const item of order.items) {
       const product = this.products.find(p => p.id === item.productId);
@@ -794,9 +828,42 @@ class StoreService {
     this.persist(STORAGE_KEY_MOVEMENTS, this.inventoryMovements);
   }
 
+  // For orders that WERE paid: stock was already deducted, so add it back.
+  private restockPaidOrder(order: Order, reason: string) {
+    for (const item of order.items) {
+      const product = this.products.find(p => p.id === item.productId);
+      if (!product) continue;
+      const variant = product.variants.find(v => v.variantId === item.variantId);
+      if (!variant) continue;
+
+      variant.inventoryStock += item.quantity;
+
+      this.inventoryMovements.unshift({
+        id: `mov-${Math.random().toString(36).substring(2, 9)}`,
+        productId: product.id,
+        productName: product.name,
+        variantId: variant.variantId,
+        colorName: variant.colorName,
+        sku: variant.sku,
+        changeType: 'CANCEL_RELEASE',
+        quantityChange: item.quantity,
+        stockAfter: variant.inventoryStock,
+        reason,
+        performedBy: 'System / Cancellation',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    this.persist(STORAGE_KEY_PRODUCTS, this.products);
+    this.persist(STORAGE_KEY_MOVEMENTS, this.inventoryMovements);
+  }
+
   public finalizeOrderPayment(orderId: string, razorpayPaymentId: string): boolean {
     const order = this.orders.find(o => o.id === orderId);
     if (!order) return false;
+
+    // Already paid: do nothing, so stock is never deducted twice.
+    if (order.paymentStatus === 'Paid') return true;
 
     for (const item of order.items) {
       const product = this.products.find(p => p.id === item.productId);
@@ -823,6 +890,15 @@ class StoreService {
       });
     }
 
+    // Count the coupon as used now that the order is paid.
+    if (order.couponCodeApplied) {
+      const coupon = this.coupons.find(c => c.code === order.couponCodeApplied);
+      if (coupon) {
+        coupon.usedCount += 1;
+        this.persist(STORAGE_KEY_COUPONS, this.coupons);
+      }
+    }
+
     order.paymentStatus = 'Paid';
     order.orderStatus = 'Order Confirmed';
     order.paymentDetails = {
@@ -846,7 +922,96 @@ class StoreService {
     this.persist(STORAGE_KEY_PRODUCTS, this.products);
     this.persist(STORAGE_KEY_MOVEMENTS, this.inventoryMovements);
 
+    this.sendOrderStatusEmail(order, `Payment ID: ${razorpayPaymentId}`);
+
     return true;
+  }
+
+  // Cancels unpaid orders and gives their reserved stock back.
+  // Cancels orders older than PENDING_ORDER_TTL_MINUTES, plus (optionally) every
+  // unpaid order of one customer, so retrying checkout never blocks their own stock.
+  private expireStalePendingOrders(forEmail?: string) {
+    const cutoff = Date.now() - PENDING_ORDER_TTL_MINUTES * 60 * 1000;
+    const email = forEmail?.trim().toLowerCase();
+    const nowIso = new Date().toISOString();
+    let changed = false;
+
+    for (const order of this.orders) {
+      if (order.orderStatus !== 'Pending Payment' || order.paymentStatus !== 'Pending') continue;
+
+      const isStale = new Date(order.createdAt).getTime() < cutoff;
+      const isSameCustomer = !!email && order.customerEmail.toLowerCase() === email;
+      if (!isStale && !isSameCustomer) continue;
+
+      this.releaseOrderReservation(
+        order,
+        isStale ? 'Payment not completed in time - stock released' : 'Replaced by a new checkout attempt'
+      );
+      order.orderStatus = 'Cancelled';
+      order.statusHistory.push({
+        status: 'Cancelled',
+        timestamp: nowIso,
+        note: isStale ? 'Payment window expired; reserved stock released.' : 'Customer started a new checkout; old reservation released.',
+        actor: 'System'
+      });
+      order.updatedAt = nowIso;
+      changed = true;
+    }
+
+    if (changed) this.persist(STORAGE_KEY_ORDERS, this.orders);
+  }
+
+  // Emails the customer about the order's CURRENT status (runs in the background).
+  // Result is written to the audit log so the admin can see if it was sent or failed.
+  private sendOrderStatusEmail(order: Order, note?: string): void {
+    const to = (order.customerEmail || '').trim();
+    // Skip demo/sample addresses (they would only bounce).
+    if (!to || /@example\.(com|org|net)$/i.test(to)) return;
+
+    const addr = order.shippingAddressSnapshot;
+    const status = order.orderStatus;
+    const payload = {
+      to,
+      customerName: order.customerName,
+      orderNumber: order.orderNumber,
+      status,
+      note: note || '',
+      items: order.items.map(i => ({
+        name: i.name,
+        colorName: i.colorName,
+        quantity: i.quantity,
+        totalPaise: i.totalPaise
+      })),
+      totalPaise: order.finalPayablePaise,
+      address: addr
+        ? [addr.addressLine1, addr.addressLine2, addr.city, addr.state, addr.pinCode].filter(Boolean).join(', ')
+        : '',
+      shipment: {
+        courierName: order.shipment?.courierName || '',
+        trackingNumber: order.shipment?.trackingNumber || '',
+        trackingUrl: order.shipment?.trackingUrl || '',
+        estimatedDeliveryDate: order.shipment?.estimatedDeliveryDate || ''
+      }
+    };
+
+    fetch('/api/v1/send-order-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.sentOverSmtp) {
+          this.logAudit('ORDER', order.id, `Customer emailed: "${status}" sent to ${to}`, 'Email System');
+        } else {
+          const why = data.smtpError || data.error || 'unknown error';
+          console.warn(`Status email not sent to ${to}: ${why}`);
+          this.logAudit('ORDER', order.id, `Customer email for "${status}" NOT sent to ${to}: ${why}`, 'Email System');
+        }
+      })
+      .catch((e: any) => {
+        this.logAudit('ORDER', order.id, `Customer email for "${status}" NOT sent to ${to}: ${e?.message || 'server unreachable'}`, 'Email System');
+      });
   }
 
   // --- PRICING QUOTE ---
@@ -924,6 +1089,9 @@ class StoreService {
     shippingAddress: DeliveryAddress;
     couponCode?: string;
   }): { success: boolean; order?: Order; razorpayOrderId?: string; message?: string } {
+    // Free stock held by abandoned / earlier unpaid attempts before reserving again.
+    this.expireStalePendingOrders(params.customerEmail);
+
     const reserveResult = this.reserveStockForOrder(params.items);
     if (!reserveResult.success) {
       return { success: false, message: reserveResult.message };
@@ -1014,11 +1182,23 @@ class StoreService {
     const order = this.orders.find(o => o.id === orderId);
     if (!order) return false;
 
+    const previousStatus = order.orderStatus;
+
     if (newStatus === 'Cancelled') {
       if (['Shipped', 'Out for Delivery', 'Delivered'].includes(order.orderStatus)) {
         throw new Error('Order cannot be cancelled after dispatch or shipment.');
       }
-      this.releaseOrderReservation(order, `Cancelled by ${actor}`);
+      // Guard against cancelling twice (would release / restock stock twice).
+      if (['Cancelled', 'Refund Pending', 'Refunded'].includes(order.orderStatus)) {
+        throw new Error('This order has already been cancelled.');
+      }
+
+      if (order.paymentStatus === 'Paid') {
+        this.restockPaidOrder(order, `Cancelled by ${actor}`);
+      } else {
+        this.releaseOrderReservation(order, `Cancelled by ${actor}`);
+      }
+
       order.cancellation = {
         cancelledAt: new Date().toISOString(),
         reason: note || 'Cancelled by admin/customer',
@@ -1040,6 +1220,11 @@ class StoreService {
 
     this.logAudit('ORDER', order.id, `Status updated to ${order.orderStatus}`, actor);
     this.persist(STORAGE_KEY_ORDERS, this.orders);
+
+    // Tell the customer (only when the status really changed).
+    if (order.orderStatus !== previousStatus) {
+      this.sendOrderStatusEmail(order, note);
+    }
     return true;
   }
 
@@ -1047,8 +1232,12 @@ class StoreService {
     const order = this.orders.find(o => o.id === orderId);
     if (!order) return false;
 
+    const previousTracking = order.shipment?.trackingNumber;
+    let becameShipped = false;
+
     order.shipment = { ...order.shipment, ...shipment };
     if (shipment.trackingNumber && order.orderStatus !== 'Shipped' && order.orderStatus !== 'Delivered') {
+      becameShipped = true;
       order.orderStatus = 'Shipped';
       order.shipment.shippedAt = new Date().toISOString();
       order.statusHistory.push({
@@ -1061,6 +1250,11 @@ class StoreService {
     order.updatedAt = new Date().toISOString();
     this.logAudit('ORDER', order.id, `Updated shipment tracking: ${shipment.trackingNumber}`, actor);
     this.persist(STORAGE_KEY_ORDERS, this.orders);
+
+    const trackingChanged = !!shipment.trackingNumber && shipment.trackingNumber !== previousTracking;
+    if (becameShipped || trackingChanged) {
+      this.sendOrderStatusEmail(order, trackingChanged && !becameShipped ? 'Tracking details have been updated.' : undefined);
+    }
     return true;
   }
 
@@ -1079,54 +1273,70 @@ class StoreService {
     order.updatedAt = new Date().toISOString();
     this.logAudit('ORDER', order.id, `Refunded ₹${refundAmountPaise / 100}`, actor);
     this.persist(STORAGE_KEY_ORDERS, this.orders);
+
+    this.sendOrderStatusEmail(order, `Refund amount: ₹${Math.round(refundAmountPaise / 100).toLocaleString('en-IN')}`);
     return true;
   }
 
   // --- OTP & AUTH ---
-  public requestOTP(email: string): { challengeId: string; expiresAt: number } {
+
+  /**
+   * Creates an OTP and returns IMMEDIATELY with challengeId + expiresAt (same shape as before),
+   * so existing components keep working. The email is sent in the background;
+   * `await result.emailResult` if you want to know whether it was delivered.
+   */
+  public requestOTP(email: string): OtpRequestResult {
     const cleanEmail = email.trim().toLowerCase();
+
+    // Remove expired challenges only (older valid ones stay valid so Resend / double-clicks can't break verify).
+    for (const [id, c] of this.otpChallenges) {
+      if (Date.now() > c.expiresAt) this.otpChallenges.delete(id);
+    }
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const challengeId = `otp-${Math.random().toString(36).substring(2, 9)}`;
-    const expiresAt = Date.now() + 5 * 60 * 1000;
+    const expiresAt = Date.now() + OTP_VALIDITY_MINUTES * 60 * 1000;
+    const subject = `✨ Your Kolhapuri Fashion Saree Verification Code: ${otp}`;
 
-    this.otpChallenges.set(challengeId, {
-      email: cleanEmail,
-      otp,
-      expiresAt,
-      attempts: 0
-    });
+    this.otpChallenges.set(challengeId, { email: cleanEmail, otp, expiresAt, attempts: 0 });
 
-    this.lastDispatchedEmail = {
-      id: `email-${Date.now()}`,
-      to: cleanEmail,
-      from: `Kolhapuri Fashion Saree <${this.settings.supportEmail || 'ankitakhot015@gmail.com'}>`,
-      subject: `✨ Your Kolhapuri Fashion Saree Verification Code: ${otp}`,
-      sentAt: new Date().toISOString(),
-      otp
-    };
+    const emailResult: Promise<OtpEmailResult> = (async () => {
+      let emailSent = false;
+      let emailError: string | null = null;
+      try {
+        const res = await fetch('/api/v1/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to: cleanEmail, subject, otp, validMinutes: OTP_VALIDITY_MINUTES })
+        });
+        const data = await res.json();
+        emailSent = !!data.sentOverSmtp;
+        emailError = data.smtpError || data.error || null;
+      } catch (e: any) {
+        emailError = e?.message || 'Could not reach the email server.';
+      }
 
-    try {
-      fetch('/api/v1/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: cleanEmail,
-          subject: `✨ Your Kolhapuri Fashion Saree Verification Code: ${otp}`,
-          text: `Namaste,\n\nYour 6-digit OTP code for Kolhapuri Fashion Saree is: ${otp}\nValid for 5 minutes.\n\nKolhapuri Fashion Saree, Shivaji Nagar, Unchgaon, Kolhapur.`,
-          otp
-        })
-      }).catch(() => {});
-    } catch {}
+      // On-screen OTP preview: development fallback only, and only if the real email failed.
+      this.lastDispatchedEmail =
+        !emailSent && IS_DEV
+          ? {
+              id: `email-${Date.now()}`,
+              to: cleanEmail,
+              from: `Kolhapuri Fashion Saree <${this.settings.supportEmail || 'no-reply'}>`,
+              subject,
+              sentAt: new Date().toISOString(),
+              otp
+            }
+          : null;
+      this.notifyListeners();
+      return { emailSent, emailError };
+    })();
 
-    this.notifyListeners();
-    return {
-      challengeId,
-      expiresAt
-    };
+    return { challengeId, expiresAt, emailResult };
   }
 
   public getLastDispatchedEmail(targetEmail?: string): DispatchedEmail | null {
-    if (!this.lastDispatchedEmail) return null;
+    if (!IS_DEV || !this.lastDispatchedEmail) return null;
     if (targetEmail && this.lastDispatchedEmail.to.toLowerCase() !== targetEmail.trim().toLowerCase()) {
       return null;
     }
@@ -1141,7 +1351,7 @@ class StoreService {
 
     if (Date.now() > challenge.expiresAt) {
       this.otpChallenges.delete(challengeId);
-      return { success: false, message: 'OTP has expired (5-minute limit). Please request a new code.' };
+      return { success: false, message: `OTP has expired (${OTP_VALIDITY_MINUTES}-minute limit). Please request a new code.` };
     }
 
     challenge.attempts++;
@@ -1155,19 +1365,18 @@ class StoreService {
     }
 
     this.otpChallenges.delete(challengeId);
-
-    const isAdmin = challenge.email === 'ankitakhot015@gmail.com' ||
-                    challenge.email === 'ankita_wavecode' ||
-                    challenge.email === 'akashkhot73@gmail.com';
+    this.lastDispatchedEmail = null;
 
     const session: UserSession = {
       email: challenge.email,
       fullName: challenge.email.split('@')[0],
-      role: isAdmin ? 'admin' : 'customer',
+      role: ADMIN_EMAILS.includes(challenge.email) ? 'admin' : 'customer',
       token: `kfs_${Math.random().toString(36).substring(2, 12)}`
     };
 
-    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(session));
+    // setSession updates BOTH memory and localStorage (the old code only did localStorage).
+    this.setSession(session);
+
     return {
       success: true,
       email: challenge.email,
@@ -1201,18 +1410,24 @@ class StoreService {
     this.notifyListeners();
   }
 
-  public addToCart(item: CartItem) {
+  // Returns true if the full requested quantity was added, false if it was limited by stock.
+  public addToCart(item: CartItem): boolean {
     const current = [...this.cart];
+    const available = this.getAvailableStock(item.productId, item.variantId);
     const existingIdx = current.findIndex(c => c.productId === item.productId && c.variantId === item.variantId);
+    const alreadyInCart = existingIdx !== -1 ? current[existingIdx].quantity : 0;
+    const wanted = alreadyInCart + item.quantity;
+    const finalQty = Math.min(wanted, available);
+
+    if (finalQty <= 0) return false; // sold out
+
     if (existingIdx !== -1) {
-      current[existingIdx] = {
-        ...current[existingIdx],
-        quantity: current[existingIdx].quantity + item.quantity
-      };
+      current[existingIdx] = { ...current[existingIdx], quantity: finalQty };
     } else {
-      current.push(item);
+      current.push({ ...item, quantity: finalQty });
     }
     this.saveCart(current);
+    return finalQty === wanted;
   }
 
   public updateCartQuantity(productId: string, variantId: string, quantity: number) {
@@ -1222,7 +1437,8 @@ class StoreService {
     } else {
       const idx = current.findIndex(c => c.productId === productId && c.variantId === variantId);
       if (idx !== -1) {
-        current[idx] = { ...current[idx], quantity };
+        const available = Math.max(1, this.getAvailableStock(productId, variantId));
+        current[idx] = { ...current[idx], quantity: Math.min(quantity, available) };
       }
     }
     this.saveCart(current);
@@ -1235,6 +1451,39 @@ class StoreService {
 
   public clearCart() {
     this.saveCart([]);
+  }
+
+  // Units that can still be bought for one colour variant (on hand minus reserved).
+  public getAvailableStock(productId: string, variantId: string): number {
+    const product = this.products.find(p => p.id === productId);
+    const variant = product?.variants.find(v => v.variantId === variantId);
+    return variant ? Math.max(0, variant.inventoryStock - variant.reservedStock) : 0;
+  }
+
+  // Lowers cart quantities that are above available stock and removes sold-out lines.
+  // Returns a list of human-readable notes about what changed.
+  public sanitizeCart(): string[] {
+    const notes: string[] = [];
+    const next: CartItem[] = [];
+
+    for (const item of this.cart) {
+      const available = this.getAvailableStock(item.productId, item.variantId);
+      const productName = this.products.find(p => p.id === item.productId)?.name || 'An item';
+
+      if (available <= 0) {
+        notes.push(`${productName} is sold out and was removed from your bag.`);
+        continue;
+      }
+      if (item.quantity > available) {
+        notes.push(`${productName}: only ${available} in stock, quantity reduced.`);
+        next.push({ ...item, quantity: available });
+      } else {
+        next.push(item);
+      }
+    }
+
+    if (notes.length > 0) this.saveCart(next);
+    return notes;
   }
 
   // --- WISHLIST ---
@@ -1313,6 +1562,98 @@ class StoreService {
     return this.inventoryMovements;
   }
 
+  // --- TESTING HELPERS ---
+  // Adds sample sarees (2 colours each, plenty of stock) so you can test the full checkout.
+  public addTestSarees(count = 6, stockPerVariant = 25): SareeProduct[] {
+    const templates = [
+      { name: 'Royal Blue Kanjivaram Silk Saree', fabric: 'Kanjivaram Silk', occasion: 'Weddings', color: 'Royal Blue & Gold', hex: '#1F3A93', mrp: 1850000, sell: 1550000 },
+      { name: 'Emerald Green Paithani Saree', fabric: 'Paithani Silk', occasion: 'Festivals & Weddings', color: 'Emerald Green & Gold', hex: '#0B6E4F', mrp: 2250000, sell: 1890000 },
+      { name: 'Peach Banarasi Georgette Saree', fabric: 'Banarasi Georgette', occasion: 'Party Wear', color: 'Peach & Silver', hex: '#F4A98C', mrp: 1250000, sell: 999000 },
+      { name: 'Mustard Festive Cotton Silk Saree', fabric: 'Cotton Silk', occasion: 'Festive', color: 'Mustard & Maroon', hex: '#D9A621', mrp: 650000, sell: 499000 },
+      { name: 'Wine Red Bridal Silk Saree', fabric: 'Pure Silk', occasion: 'Bridal', color: 'Wine Red & Antique Gold', hex: '#6B1D34', mrp: 2850000, sell: 2390000 },
+      { name: 'Teal Blue Designer Party Saree', fabric: 'Designer Georgette', occasion: 'Party Wear', color: 'Teal Blue & Rose Gold', hex: '#127C8A', mrp: 950000, sell: 749000 }
+    ];
+
+    const image = INITIAL_PRODUCTS[0].primaryImage; // reuses the first saree photo; change images in Admin
+    const created: SareeProduct[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const t = templates[i % templates.length];
+
+      // Keep names (and therefore URLs) unique even if you run this more than once.
+      let name = t.name;
+      let n = 2;
+      while (this.products.some(p => p.name === name)) name = `${t.name} ${n++}`;
+
+      const cat = this.categories.length ? this.categories[i % this.categories.length] : undefined;
+      const sku = `KFS-TEST-${Date.now().toString(36).toUpperCase()}-${i + 1}`;
+      const id = `saree-test-${Date.now()}-${i}`;
+
+      const product = this.saveProduct({
+        name,
+        sku,
+        description: `${t.fabric} saree with traditional handloom weave. Test product for checkout.`,
+        fabric: t.fabric,
+        occasion: t.occasion,
+        categoryIds: cat ? [cat.id] : undefined,
+        categoryNames: cat ? [cat.name] : undefined,
+        primaryImage: image,
+        galleryImages: [image],
+        featured: i < 2,
+        trending: i % 2 === 0,
+        isNewArrival: true,
+        isPublished: true,
+        variants: [
+          {
+            variantId: `var-${id}-a`,
+            colorName: t.color,
+            colorHex: t.hex,
+            sku: `${sku}-A`,
+            originalPricePaise: t.mrp,
+            sellingPricePaise: t.sell,
+            inventoryStock: stockPerVariant,
+            reservedStock: 0,
+            images: [image]
+          },
+          {
+            variantId: `var-${id}-b`,
+            colorName: 'Ivory & Gold',
+            colorHex: '#F5EBD0',
+            sku: `${sku}-B`,
+            originalPricePaise: t.mrp,
+            sellingPricePaise: t.sell,
+            inventoryStock: stockPerVariant,
+            reservedStock: 0,
+            images: [image]
+          }
+        ]
+      }, 'Test Seeder');
+
+      created.push(product);
+    }
+    return created;
+  }
+
+  // Raises every colour variant that is below `minStock` up to `minStock` (logged in inventory history).
+  public restockAllForTesting(minStock = 25): number {
+    let updated = 0;
+    for (const p of this.products) {
+      for (const v of p.variants) {
+        if (v.inventoryStock < minStock) {
+          this.adjustStock({
+            productId: p.id,
+            variantId: v.variantId,
+            adjustment: minStock - v.inventoryStock,
+            reason: 'Testing restock',
+            performedBy: 'Test Seeder'
+          });
+          updated++;
+        }
+      }
+    }
+    return updated;
+  }
+
   // --- DASHBOARD METRICS ---
   public getDashboardStats() {
     const totalOrders = this.orders.length;
@@ -1361,3 +1702,8 @@ class StoreService {
 }
 
 export const storeService = new StoreService();
+
+// Development only: lets you run `kfs.addTestSarees()` in the browser console.
+if (IS_DEV && typeof window !== 'undefined') {
+  (window as any).kfs = storeService;
+}

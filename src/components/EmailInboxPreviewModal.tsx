@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
-import { X, Mail, Check, Copy, ExternalLink, ShieldAlert, Sparkles } from 'lucide-react';
-import { DispatchedEmail } from '../services/storeService.ts';
+
+import React, { useState } from "react";
+import { X, Mail, Check, Copy, ShieldAlert, Sparkles } from "lucide-react";
+import {
+  DispatchedEmail,
+  OTP_VALIDITY_MINUTES,
+} from "../services/storeService.ts";
 
 interface EmailInboxPreviewModalProps {
   isOpen: boolean;
@@ -13,7 +17,7 @@ export const EmailInboxPreviewModal: React.FC<EmailInboxPreviewModalProps> = ({
   isOpen,
   onClose,
   emailData,
-  onAutoFillOtp
+  onAutoFillOtp,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -32,7 +36,7 @@ export const EmailInboxPreviewModal: React.FC<EmailInboxPreviewModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div 
+      <div
         className="relative w-full max-w-xl bg-white rounded-xl shadow-2xl overflow-hidden border border-[#E6E0D8] flex flex-col max-h-[90vh]"
         role="dialog"
         aria-modal="true"
@@ -42,7 +46,7 @@ export const EmailInboxPreviewModal: React.FC<EmailInboxPreviewModalProps> = ({
           <div className="flex items-center gap-2">
             <Mail className="w-4 h-4 text-[#C7A66A]" />
             <span className="text-xs font-semibold tracking-wide font-sans">
-              Email Dispatch Viewer · {emailData.to}
+              Email Dispatch Viewer (dev only) · {emailData.to}
             </span>
           </div>
           <button
@@ -92,7 +96,9 @@ export const EmailInboxPreviewModal: React.FC<EmailInboxPreviewModalProps> = ({
           <div className="space-y-3 text-xs text-[#292522] leading-relaxed">
             <p>Namaste,</p>
             <p>
-              Thank you for visiting Kolhapuri Fashion Saree. Use the following single-use 6-digit code to complete your verification and securely place your order:
+              Thank you for visiting Kolhapuri Fashion Saree. Use the following
+              single-use 6-digit code to complete your verification and securely
+              place your order:
             </p>
 
             {/* OTP Display Box */}
@@ -104,21 +110,26 @@ export const EmailInboxPreviewModal: React.FC<EmailInboxPreviewModalProps> = ({
                 {emailData.otp}
               </div>
               <p className="text-[11px] text-[#766B61]">
-                (This code expires in 5 minutes · One-time use only)
+                (This code expires in {OTP_VALIDITY_MINUTES} minutes · One-time
+                use only)
               </p>
             </div>
 
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2 text-[11px] text-amber-900">
               <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
               <span>
-                For security reasons, never share this OTP with anyone. Our weavers and store representatives will never ask for your verification code.
+                For security reasons, never share this OTP with anyone. Our
+                weavers and store representatives will never ask for your
+                verification code.
               </span>
             </div>
           </div>
 
           {/* Saree Boutique Footer */}
           <div className="pt-4 border-t border-[#E6E0D8] text-[11px] text-[#766B61] text-center space-y-1">
-            <p className="font-semibold text-[#292522]">Kolhapuri Fashion Saree</p>
+            <p className="font-semibold text-[#292522]">
+              Kolhapuri Fashion Saree
+            </p>
             <p>Shivaji Nagar, Unchgaon, Kolhapur, Maharashtra, India</p>
             <p>WhatsApp & Phone: 9096863092</p>
           </div>
