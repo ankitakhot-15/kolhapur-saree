@@ -254,3 +254,4 @@ export interface UserSession {
   role: 'customer' | 'admin';
   token: string;
 }
+export { parseBill } from '../parseBill';

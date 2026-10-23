@@ -1,4 +1,1152 @@
-// // import React, { useState, useEffect } from 'react';
+// // // import React, { useState, useEffect } from 'react';
+// // // import {
+// // //   LayoutDashboard,
+// // //   Package,
+// // //   ShoppingCart,
+// // //   Layers,
+// // //   Image,
+// // //   Tag,
+// // //   Settings,
+// // //   FileText,
+// // //   ShieldCheck,
+// // //   LogOut,
+// // //   Plus,
+// // //   Edit2,
+// // //   Trash2,
+// // //   Truck,
+// // //   AlertTriangle,
+// // //   ArrowLeft,
+// // //   CheckCircle,
+// // //   RefreshCw,
+// // //   Search,
+// // //   ExternalLink
+// // // } from 'lucide-react';
+// // // import {
+// // //   SareeProduct,
+// // //   CategoryItem,
+// // //   PromotionalBanner,
+// // //   Coupon,
+// // //   Order,
+// // //   OrderStatus,
+// // //   InventoryMovement,
+// // //   StoreSettings,
+// // //   AuditLogItem
+// // // } from '../../types/index.ts';
+// // // import { storeService } from '../../services/storeService.ts';
+// // // import { formatPriceINR, formatDate } from '../../utils/formatters.ts';
+
+// // // interface AdminPortalProps {
+// // //   onExitToStore: () => void;
+// // // }
+
+// // // export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
+// // //   const [activeTab, setActiveTab] = useState<
+// // //     'dashboard' | 'products' | 'orders' | 'inventory' | 'categories' | 'banners' | 'coupons' | 'settings' | 'audit'
+// // //   >('dashboard');
+
+// // //   const [session, setSession] = useState(storeService.getSession());
+// // //   const [stats, setStats] = useState(storeService.getDashboardStats());
+// // //   const [products, setProducts] = useState<SareeProduct[]>([]);
+// // //   const [orders, setOrders] = useState<Order[]>([]);
+// // //   const [categories, setCategories] = useState<CategoryItem[]>([]);
+// // //   const [banners, setBanners] = useState<PromotionalBanner[]>([]);
+// // //   const [coupons, setCoupons] = useState<Coupon[]>([]);
+// // //   const [movements, setMovements] = useState<InventoryMovement[]>([]);
+// // //   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
+// // //   const [settings, setSettings] = useState<StoreSettings>(storeService.getSettings());
+
+// // //   // Editing modals
+// // //   const [editingProduct, setEditingProduct] = useState<Partial<SareeProduct> | null>(null);
+// // //   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+// // //   const [stockAdjustItem, setStockAdjustItem] = useState<{ productId: string; variantId: string; productName: string; colorName: string; currentStock: number } | null>(null);
+// // //   const [adjustmentAmount, setAdjustmentAmount] = useState(5);
+// // //   const [adjustmentReason, setAdjustmentReason] = useState('New handloom shipment arrived from Kolhapur weavers');
+// // //   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+// // //   const [courierInput, setCourierInput] = useState('Blue Dart Express');
+// // //   const [trackingNumberInput, setTrackingNumberInput] = useState('');
+// // //   const [trackingUrlInput, setTrackingUrlInput] = useState('https://www.bluedart.com');
+
+// // //   // Coupon form
+// // //   const [newCouponCode, setNewCouponCode] = useState('');
+// // //   const [newCouponDiscount, setNewCouponDiscount] = useState(15);
+// // //   const [newCouponMinOrder, setNewCouponMinOrder] = useState(4999);
+
+// // //   // Settings form
+// // //   const [announcementInput, setAnnouncementInput] = useState('');
+
+// // //   useEffect(() => {
+// // //     const update = () => {
+// // //       setSession(storeService.getSession());
+// // //       setStats(storeService.getDashboardStats());
+// // //       setProducts(storeService.getAllProductsAdmin());
+// // //       setOrders(storeService.getOrders());
+// // //       setCategories(storeService.getCategories());
+// // //       setBanners(storeService.getBanners(false));
+// // //       setCoupons(storeService.getCoupons());
+// // //       setMovements(storeService.getInventoryMovements());
+// // //       setAuditLogs(storeService.getAuditLogs());
+// // //       setSettings(storeService.getSettings());
+// // //     };
+// // //     update();
+// // //     return storeService.subscribe(update);
+// // //   }, []);
+
+// // //   const handleAdminAuth = () => {
+// // //     storeService.setSession({
+// // //       email: 'ankitakhot015@gmail.com',
+// // //       fullName: 'Ankita Khot (Owner)',
+// // //       phone: '9096863092',
+// // //       role: 'admin',
+// // //       token: 'adm_kfs_' + Date.now()
+// // //     });
+// // //   };
+
+// // //   const handleSaveProduct = (e: React.FormEvent) => {
+// // //     e.preventDefault();
+// // //     if (!editingProduct?.name) return;
+
+// // //     storeService.saveProduct(editingProduct, session?.fullName || 'Owner');
+// // //     setIsProductModalOpen(false);
+// // //     setEditingProduct(null);
+// // //   };
+
+// // //   const handleDeleteProduct = (id: string) => {
+// // //     if (confirm('Are you sure you want to delete this saree?')) {
+// // //       storeService.deleteProduct(id, session?.fullName || 'Owner');
+// // //     }
+// // //   };
+
+// // //   const handlePerformStockAdjustment = (e: React.FormEvent) => {
+// // //     e.preventDefault();
+// // //     if (!stockAdjustItem) return;
+
+// // //     storeService.adjustStock({
+// // //       productId: stockAdjustItem.productId,
+// // //       variantId: stockAdjustItem.variantId,
+// // //       adjustment: Number(adjustmentAmount),
+// // //       reason: adjustmentReason,
+// // //       performedBy: session?.fullName || 'Owner'
+// // //     });
+// // //     setStockAdjustItem(null);
+// // //   };
+
+// // //   const handleUpdateOrderStatus = (orderId: string, status: OrderStatus) => {
+// // //     storeService.updateOrderStatus(orderId, status, session?.fullName || 'Owner', `Status updated in admin console`);
+// // //     if (selectedOrder?.id === orderId) {
+// // //       setSelectedOrder(storeService.getOrderById(orderId) || null);
+// // //     }
+// // //   };
+
+// // //   const handleAssignTracking = (orderId: string) => {
+// // //     if (!trackingNumberInput) return;
+// // //     storeService.updateShipmentDetails(orderId, {
+// // //       courierName: courierInput,
+// // //       trackingNumber: trackingNumberInput,
+// // //       trackingUrl: trackingUrlInput
+// // //     }, session?.fullName || 'Owner');
+// // //     if (selectedOrder?.id === orderId) {
+// // //       setSelectedOrder(storeService.getOrderById(orderId) || null);
+// // //     }
+// // //     setTrackingNumberInput('');
+// // //   };
+
+// // //   const handleProcessRefund = (orderId: string, amountPaise: number) => {
+// // //     if (confirm(`Confirm refund of ${formatPriceINR(amountPaise)}?`)) {
+// // //       storeService.processOrderRefund(orderId, amountPaise, session?.fullName || 'Owner');
+// // //       if (selectedOrder?.id === orderId) {
+// // //         setSelectedOrder(storeService.getOrderById(orderId) || null);
+// // //       }
+// // //     }
+// // //   };
+
+// // //   const handleAddCoupon = (e: React.FormEvent) => {
+// // //     e.preventDefault();
+// // //     if (!newCouponCode) return;
+// // //     storeService.saveCoupon({
+// // //       code: newCouponCode.toUpperCase().trim(),
+// // //       description: `Save ${newCouponDiscount}% on orders above ₹${newCouponMinOrder}`,
+// // //       discountPercentage: Number(newCouponDiscount),
+// // //       minOrderValuePaise: Number(newCouponMinOrder) * 100,
+// // //       maxDiscountPaise: 300000,
+// // //       usageLimit: 200,
+// // //       isActive: true,
+// // //       validUntil: '2026-12-31'
+// // //     }, session?.fullName || 'Owner');
+// // //     setNewCouponCode('');
+// // //   };
+
+// // //   const handleAddAnnouncement = () => {
+// // //     if (!announcementInput.trim()) return;
+// // //     const current = [...(settings.announcementMessages || []), announcementInput.trim()];
+// // //     storeService.updateSettings({ announcementMessages: current }, session?.fullName || 'Owner');
+// // //     setAnnouncementInput('');
+// // //   };
+
+// // //   const handleRemoveAnnouncement = (index: number) => {
+// // //     const current = settings.announcementMessages.filter((_, i) => i !== index);
+// // //     storeService.updateSettings({ announcementMessages: current }, session?.fullName || 'Owner');
+// // //   };
+
+// // //   return (
+// // //     <div className="min-h-screen bg-[#FAF7F0] flex flex-col">
+// // //       {/* Top Bar */}
+// // //       <header className="bg-[#641D32] text-white px-6 py-3.5 flex items-center justify-between border-b border-[#4A1223] shadow-sm z-30">
+// // //         <div className="flex items-center gap-4">
+// // //           <button
+// // //             onClick={onExitToStore}
+// // //             className="flex items-center gap-1.5 text-xs text-[#C7A66A] hover:text-white transition-colors border border-[#C7A66A]/40 rounded px-2.5 py-1"
+// // //           >
+// // //             <ArrowLeft className="w-3.5 h-3.5" />
+// // //             <span>Customer Website</span>
+// // //           </button>
+// // //           <div className="flex items-center gap-2">
+// // //             <span className="font-serif font-bold text-lg text-[#FAF7F0]">Kolhapuri Fashion Saree</span>
+// // //             <span className="text-[11px] text-[#C7A66A] font-semibold bg-[#4A1223] px-2 py-0.5 rounded">Owner Portal</span>
+// // //           </div>
+// // //         </div>
+
+// // //         <div className="flex items-center gap-3 text-xs">
+// // //           <span className="hidden sm:inline text-white/80">Owner: Ankita Khot</span>
+// // //           <button
+// // //             onClick={onExitToStore}
+// // //             className="p-1.5 hover:text-[#C7A66A] transition-colors"
+// // //             title="Exit to store"
+// // //           >
+// // //             <LogOut className="w-4 h-4" />
+// // //           </button>
+// // //         </div>
+// // //       </header>
+
+// // //       {/* Main Container with Sidebar */}
+// // //       <div className="flex flex-1 overflow-hidden">
+// // //         {/* Sidebar Nav */}
+// // //         <aside className="w-60 bg-white border-r border-[#E6E0D8] p-4 flex flex-col justify-between shrink-0">
+// // //           <div className="space-y-1">
+// // //             <button
+// // //               onClick={() => setActiveTab('dashboard')}
+// // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+// // //                 activeTab === 'dashboard' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// // //               }`}
+// // //             >
+// // //               <LayoutDashboard className="w-4 h-4" />
+// // //               <span>Overview & KPIs</span>
+// // //             </button>
+
+// // //             <button
+// // //               onClick={() => setActiveTab('orders')}
+// // //               className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+// // //                 activeTab === 'orders' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// // //               }`}
+// // //             >
+// // //               <div className="flex items-center gap-2.5">
+// // //                 <ShoppingCart className="w-4 h-4" />
+// // //                 <span>Orders & Tracking</span>
+// // //               </div>
+// // //               {orders.length > 0 && (
+// // //                 <span className="bg-[#C7A66A] text-[#292522] px-1.5 py-0.2 rounded text-[10px] font-bold">
+// // //                   {orders.length}
+// // //                 </span>
+// // //               )}
+// // //             </button>
+
+// // //             <button
+// // //               onClick={() => setActiveTab('products')}
+// // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+// // //                 activeTab === 'products' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// // //               }`}
+// // //             >
+// // //               <Package className="w-4 h-4" />
+// // //               <span>Saree Catalog</span>
+// // //             </button>
+
+// // //             <button
+// // //               onClick={() => setActiveTab('inventory')}
+// // //               className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+// // //                 activeTab === 'inventory' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// // //               }`}
+// // //             >
+// // //               <div className="flex items-center gap-2.5">
+// // //                 <Layers className="w-4 h-4" />
+// // //                 <span>Inventory & Stocks</span>
+// // //               </div>
+// // //               {stats.lowStockProducts > 0 && (
+// // //                 <span className="bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded text-[10px] font-bold">
+// // //                   {stats.lowStockProducts} Low
+// // //                 </span>
+// // //               )}
+// // //             </button>
+
+// // //             <button
+// // //               onClick={() => setActiveTab('categories')}
+// // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+// // //                 activeTab === 'categories' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// // //               }`}
+// // //             >
+// // //               <Layers className="w-4 h-4" />
+// // //               <span>Categories</span>
+// // //             </button>
+
+// // //             <button
+// // //               onClick={() => setActiveTab('banners')}
+// // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+// // //                 activeTab === 'banners' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// // //               }`}
+// // //             >
+// // //               <Image className="w-4 h-4" />
+// // //               <span>Hero Banners</span>
+// // //             </button>
+
+// // //             <button
+// // //               onClick={() => setActiveTab('coupons')}
+// // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+// // //                 activeTab === 'coupons' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// // //               }`}
+// // //             >
+// // //               <Tag className="w-4 h-4" />
+// // //               <span>Coupons & Offers</span>
+// // //             </button>
+
+// // //             <button
+// // //               onClick={() => setActiveTab('settings')}
+// // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+// // //                 activeTab === 'settings' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// // //               }`}
+// // //             >
+// // //               <Settings className="w-4 h-4" />
+// // //               <span>Store Configuration</span>
+// // //             </button>
+
+// // //             <button
+// // //               onClick={() => setActiveTab('audit')}
+// // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+// // //                 activeTab === 'audit' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// // //               }`}
+// // //             >
+// // //               <FileText className="w-4 h-4" />
+// // //               <span>Audit Logs</span>
+// // //             </button>
+// // //           </div>
+
+// // //           <div className="pt-4 border-t border-[#E6E0D8] text-[11px] text-[#766B61]">
+// // //             <p><strong>Boutique Address:</strong></p>
+// // //             <p className="mt-0.5 leading-tight">{settings.businessAddress}</p>
+// // //             <p className="mt-1 font-semibold text-[#641D32]">Ph: {settings.businessPhone}</p>
+// // //           </div>
+// // //         </aside>
+
+// // //         {/* Tab View Content */}
+// // //         <main className="flex-1 overflow-y-auto p-6 sm:p-8">
+
+// // //           {/* 1. DASHBOARD */}
+// // //           {activeTab === 'dashboard' && (
+// // //             <div className="space-y-8 max-w-6xl">
+// // //               <div>
+// // //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Boutique Performance Dashboard</h2>
+// // //                 <p className="text-xs text-[#766B61] mt-0.5">Authoritative metrics calculated from real database orders and stock movements.</p>
+// // //               </div>
+
+// // //               {/* KPI Cards */}
+// // //               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+// // //                 <div className="bg-white p-5 rounded-xl border border-[#E6E0D8] shadow-xs space-y-1">
+// // //                   <span className="text-xs text-[#766B61] font-medium">Confirmed Paid Revenue</span>
+// // //                   <div className="text-2xl font-bold text-[#641D32] tabular-nums font-sans">
+// // //                     {formatPriceINR(stats.confirmedPaidRevenuePaise)}
+// // //                   </div>
+// // //                   <span className="text-[11px] text-emerald-700 font-semibold">100% Verified Razorpay</span>
+// // //                 </div>
+
+// // //                 <div className="bg-white p-5 rounded-xl border border-[#E6E0D8] shadow-xs space-y-1">
+// // //                   <span className="text-xs text-[#766B61] font-medium">Total Orders Placed</span>
+// // //                   <div className="text-2xl font-bold text-[#292522] tabular-nums font-sans">
+// // //                     {stats.totalOrders}
+// // //                   </div>
+// // //                   <span className="text-[11px] text-[#766B61]">{stats.processingOrders} in processing / packaging</span>
+// // //                 </div>
+
+// // //                 <div className="bg-white p-5 rounded-xl border border-[#E6E0D8] shadow-xs space-y-1">
+// // //                   <span className="text-xs text-[#766B61] font-medium">Active Saree Weaves</span>
+// // //                   <div className="text-2xl font-bold text-[#292522] tabular-nums font-sans">
+// // //                     {stats.totalProducts}
+// // //                   </div>
+// // //                   <span className="text-[11px] text-[#766B61]">Across Paithani & Bridal Silks</span>
+// // //                 </div>
+
+// // //                 <div className="bg-white p-5 rounded-xl border border-[#E6E0D8] shadow-xs space-y-1">
+// // //                   <span className="text-xs text-[#766B61] font-medium">Low Stock Alerts</span>
+// // //                   <div className="text-2xl font-bold text-amber-700 tabular-nums font-sans">
+// // //                     {stats.lowStockProducts}
+// // //                   </div>
+// // //                   <span className="text-[11px] text-amber-800">Requires weaver restocking</span>
+// // //                 </div>
+// // //               </div>
+
+// // //               {/* Recent Orders in Dashboard */}
+// // //               <div className="bg-white rounded-xl border border-[#E6E0D8] p-6 shadow-xs space-y-4">
+// // //                 <div className="flex items-center justify-between">
+// // //                   <h3 className="text-base font-serif font-bold text-[#292522]">Recent Orders</h3>
+// // //                   <button
+// // //                     onClick={() => setActiveTab('orders')}
+// // //                     className="text-xs font-semibold text-[#641D32] hover:underline"
+// // //                   >
+// // //                     View All Orders →
+// // //                   </button>
+// // //                 </div>
+
+// // //                 <div className="overflow-x-auto">
+// // //                   <table className="w-full text-xs text-left">
+// // //                     <thead className="bg-[#FAF7F0] text-[#766B61] font-semibold border-b border-[#E6E0D8]">
+// // //                       <tr>
+// // //                         <th className="p-3">Order Number</th>
+// // //                         <th className="p-3">Customer</th>
+// // //                         <th className="p-3">Items</th>
+// // //                         <th className="p-3">Total Amount</th>
+// // //                         <th className="p-3">Payment</th>
+// // //                         <th className="p-3">Status</th>
+// // //                       </tr>
+// // //                     </thead>
+// // //                     <tbody className="divide-y divide-[#E6E0D8]">
+// // //                       {orders.slice(0, 5).map((o) => (
+// // //                         <tr key={o.id} className="hover:bg-[#FAF7F0]/60">
+// // //                           <td className="p-3 font-mono font-bold text-[#641D32]">#{o.orderNumber}</td>
+// // //                           <td className="p-3">
+// // //                             <span className="font-semibold text-[#292522] block">{o.customerName}</span>
+// // //                             <span className="text-[#766B61] text-[11px]">{o.customerEmail}</span>
+// // //                           </td>
+// // //                           <td className="p-3 truncate max-w-[180px]">{o.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</td>
+// // //                           <td className="p-3 font-bold tabular-nums font-sans">{formatPriceINR(o.finalPayablePaise)}</td>
+// // //                           <td className="p-3">
+// // //                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+// // //                               o.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+// // //                             }`}>
+// // //                               {o.paymentStatus}
+// // //                             </span>
+// // //                           </td>
+// // //                           <td className="p-3">
+// // //                             <span className="font-semibold">{o.orderStatus}</span>
+// // //                           </td>
+// // //                         </tr>
+// // //                       ))}
+// // //                     </tbody>
+// // //                   </table>
+// // //                 </div>
+// // //               </div>
+// // //             </div>
+// // //           )}
+
+// // //           {/* 2. PRODUCTS MANAGEMENT */}
+// // //           {activeTab === 'products' && (
+// // //             <div className="space-y-6 max-w-6xl">
+// // //               <div className="flex flex-wrap items-center justify-between gap-4">
+// // //                 <div>
+// // //                   <h2 className="text-2xl font-serif font-bold text-[#292522]">Saree Product Catalog Management</h2>
+// // //                   <p className="text-xs text-[#766B61] mt-0.5">Manage Paithani, Kanjivaram, and designer sarees, SKU, color variants, and prices.</p>
+// // //                 </div>
+// // //                 <button
+// // //                   onClick={() => {
+// // //                     setEditingProduct({
+// // //                       name: '',
+// // //                       fabric: 'Pure Mulberry Silk',
+// // //                       occasion: 'Festive & Weddings',
+// // //                       lengthMeters: 6.3,
+// // //                       blousePiece: 'Running 0.8m unstitched silk piece included',
+// // //                       careInstructions: 'Dry clean only',
+// // //                       categoryNames: ['Silk Sarees'],
+// // //                       variants: [
+// // //                         {
+// // //                           variantId: `var-${Date.now()}-1`,
+// // //                           colorName: 'Royal Purple & Gold',
+// // //                           colorHex: '#4B0082',
+// // //                           sku: 'KFS-SILK-' + Math.floor(100 + Math.random() * 900),
+// // //                           originalPricePaise: 1699900,
+// // //                           sellingPricePaise: 1299900,
+// // //                           inventoryStock: 8,
+// // //                           reservedStock: 0,
+// // //                           images: [products[0]?.primaryImage || '']
+// // //                         }
+// // //                       ],
+// // //                       featured: true,
+// // //                       isPublished: true
+// // //                     });
+// // //                     setIsProductModalOpen(true);
+// // //                   }}
+// // //                   className="px-4 py-2 bg-[#641D32] hover:bg-[#4A1223] text-white text-xs font-semibold rounded-md shadow-xs flex items-center gap-1.5 transition-colors"
+// // //                 >
+// // //                   <Plus className="w-4 h-4" />
+// // //                   <span>Add New Saree</span>
+// // //                 </button>
+// // //               </div>
+
+// // //               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+// // //                 {products.map((p) => {
+// // //                   const v = p.variants[0];
+// // //                   const totalStock = p.variants.reduce((sum, item) => sum + (item.inventoryStock - item.reservedStock), 0);
+// // //                   return (
+// // //                     <div key={p.id} className="bg-white rounded-xl border border-[#E6E0D8] overflow-hidden flex flex-col justify-between shadow-xs">
+// // //                       <div className="aspect-[4/3] bg-[#FAF7F0] relative overflow-hidden">
+// // //                         <img src={p.primaryImage} alt={p.name} className="w-full h-full object-cover" />
+// // //                         <div className="absolute top-2 right-2 flex gap-1">
+// // //                           <button
+// // //                             onClick={() => {
+// // //                               setEditingProduct(p);
+// // //                               setIsProductModalOpen(true);
+// // //                             }}
+// // //                             className="p-1.5 bg-white/90 hover:bg-white text-[#292522] rounded shadow-xs"
+// // //                             title="Edit"
+// // //                           >
+// // //                             <Edit2 className="w-3.5 h-3.5" />
+// // //                           </button>
+// // //                           <button
+// // //                             onClick={() => handleDeleteProduct(p.id)}
+// // //                             className="p-1.5 bg-white/90 hover:bg-white text-red-600 rounded shadow-xs"
+// // //                             title="Delete"
+// // //                           >
+// // //                             <Trash2 className="w-3.5 h-3.5" />
+// // //                           </button>
+// // //                         </div>
+// // //                       </div>
+
+// // //                       <div className="p-4 space-y-2">
+// // //                         <div className="flex items-center justify-between text-[11px] text-[#766B61]">
+// // //                           <span>{p.fabric}</span>
+// // //                           <span>SKU: {p.sku}</span>
+// // //                         </div>
+// // //                         <h4 className="text-sm font-semibold font-serif text-[#292522] line-clamp-1">{p.name}</h4>
+// // //                         <div className="flex items-baseline justify-between pt-1 border-t border-[#E6E0D8]">
+// // //                           <span className="text-base font-bold text-[#641D32] tabular-nums font-sans">
+// // //                             {formatPriceINR(v?.sellingPricePaise || 0)}
+// // //                           </span>
+// // //                           <span className={`text-[11px] font-semibold ${totalStock <= 3 ? 'text-amber-700' : 'text-emerald-700'}`}>
+// // //                             Stock: {totalStock} units
+// // //                           </span>
+// // //                         </div>
+// // //                       </div>
+// // //                     </div>
+// // //                   );
+// // //                 })}
+// // //               </div>
+// // //             </div>
+// // //           )}
+
+// // //           {/* 3. ORDERS MANAGEMENT */}
+// // //           {activeTab === 'orders' && (
+// // //             <div className="space-y-6 max-w-6xl">
+// // //               <div>
+// // //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Order & Shipment Tracking Management</h2>
+// // //                 <p className="text-xs text-[#766B61] mt-0.5">Control order status lifecycle, dispatch shipments via Blue Dart/Delhivery, and handle authorized refunds.</p>
+// // //               </div>
+
+// // //               <div className="bg-white rounded-xl border border-[#E6E0D8] overflow-hidden shadow-xs">
+// // //                 <table className="w-full text-xs text-left">
+// // //                   <thead className="bg-[#FAF7F0] text-[#766B61] font-semibold border-b border-[#E6E0D8]">
+// // //                     <tr>
+// // //                       <th className="p-3">Order Number</th>
+// // //                       <th className="p-3">Customer</th>
+// // //                       <th className="p-3">Items</th>
+// // //                       <th className="p-3">Amount</th>
+// // //                       <th className="p-3">Status</th>
+// // //                       <th className="p-3">Shipment</th>
+// // //                       <th className="p-3 text-right">Actions</th>
+// // //                     </tr>
+// // //                   </thead>
+// // //                   <tbody className="divide-y divide-[#E6E0D8]">
+// // //                     {orders.map((o) => (
+// // //                       <tr key={o.id} className="hover:bg-[#FAF7F0]/60">
+// // //                         <td className="p-3 font-mono font-bold text-[#641D32]">#{o.orderNumber}</td>
+// // //                         <td className="p-3">
+// // //                           <span className="font-semibold text-[#292522] block">{o.customerName}</span>
+// // //                           <span className="text-[#766B61] text-[11px]">{o.customerPhone}</span>
+// // //                         </td>
+// // //                         <td className="p-3 max-w-[200px] truncate">{o.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</td>
+// // //                         <td className="p-3 font-bold tabular-nums font-sans">{formatPriceINR(o.finalPayablePaise)}</td>
+// // //                         <td className="p-3">
+// // //                           <select
+// // //                             value={o.orderStatus}
+// // //                             onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value as OrderStatus)}
+// // //                             className="text-xs p-1 bg-[#FAF7F0] border border-[#E6E0D8] rounded font-semibold text-[#292522]"
+// // //                           >
+// // //                             <option value="Pending Payment">Pending Payment</option>
+// // //                             <option value="Payment Confirmed">Payment Confirmed</option>
+// // //                             <option value="Order Confirmed">Order Confirmed</option>
+// // //                             <option value="Processing">Processing</option>
+// // //                             <option value="Packed">Packed</option>
+// // //                             <option value="Shipped">Shipped</option>
+// // //                             <option value="Out for Delivery">Out for Delivery</option>
+// // //                             <option value="Delivered">Delivered</option>
+// // //                             <option value="Cancelled">Cancelled</option>
+// // //                             <option value="Refunded">Refunded</option>
+// // //                           </select>
+// // //                         </td>
+// // //                         <td className="p-3">
+// // //                           {o.shipment?.trackingNumber ? (
+// // //                             <span className="font-mono text-[11px] text-[#641D32] font-semibold">
+// // //                               {o.shipment.courierName}: {o.shipment.trackingNumber}
+// // //                             </span>
+// // //                           ) : (
+// // //                             <button
+// // //                               onClick={() => {
+// // //                                 setSelectedOrder(o);
+// // //                                 setTrackingNumberInput(`BDKOL${Date.now().toString().slice(-6)}`);
+// // //                               }}
+// // //                               className="text-[11px] text-[#641D32] hover:underline font-semibold"
+// // //                             >
+// // //                               + Assign Courier
+// // //                             </button>
+// // //                           )}
+// // //                         </td>
+// // //                         <td className="p-3 text-right">
+// // //                           <button
+// // //                             onClick={() => setSelectedOrder(o)}
+// // //                             className="px-2.5 py-1 bg-[#FAF7F0] hover:bg-white text-[#292522] border border-[#E6E0D8] rounded font-medium text-[11px]"
+// // //                           >
+// // //                             Manage
+// // //                           </button>
+// // //                         </td>
+// // //                       </tr>
+// // //                     ))}
+// // //                   </tbody>
+// // //                 </table>
+// // //               </div>
+
+// // //               {/* Order Detail Side Drawer / Modal */}
+// // //               {selectedOrder && (
+// // //                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+// // //                   <div className="bg-white rounded-xl max-w-xl w-full p-6 shadow-2xl border border-[#E6E0D8] space-y-4 max-h-[90vh] overflow-y-auto">
+// // //                     <div className="flex items-center justify-between pb-3 border-b border-[#E6E0D8]">
+// // //                       <div>
+// // //                         <span className="text-xs text-[#766B61]">Order Inspector</span>
+// // //                         <h3 className="text-lg font-mono font-bold text-[#641D32]">#{selectedOrder.orderNumber}</h3>
+// // //                       </div>
+// // //                       <button onClick={() => setSelectedOrder(null)} className="p-1 text-[#766B61] hover:text-[#292522]">
+// // //                         ✕
+// // //                       </button>
+// // //                     </div>
+
+// // //                     <div className="space-y-3 text-xs">
+// // //                       <div>
+// // //                         <strong className="block text-[#292522] mb-1">Customer Delivery Address:</strong>
+// // //                         <p className="text-[#766B61]">
+// // //                           {selectedOrder.shippingAddressSnapshot.fullName}<br />
+// // //                           {selectedOrder.shippingAddressSnapshot.addressLine1}<br />
+// // //                           {selectedOrder.shippingAddressSnapshot.city}, {selectedOrder.shippingAddressSnapshot.state} - {selectedOrder.shippingAddressSnapshot.pinCode}<br />
+// // //                           Phone: {selectedOrder.shippingAddressSnapshot.mobileNumber} · Email: {selectedOrder.customerEmail}
+// // //                         </p>
+// // //                       </div>
+
+// // //                       {/* Shipment Tracking assignment form */}
+// // //                       <div className="p-3 bg-[#FAF7F0] border border-[#E6E0D8] rounded-md space-y-2">
+// // //                         <strong className="block text-[#292522]">Shipment Tracking Assignment:</strong>
+// // //                         <div className="grid grid-cols-2 gap-2">
+// // //                           <input
+// // //                             type="text"
+// // //                             placeholder="Courier (e.g. Blue Dart)"
+// // //                             value={courierInput}
+// // //                             onChange={(e) => setCourierInput(e.target.value)}
+// // //                             className="p-1.5 bg-white border border-[#E6E0D8] rounded text-xs"
+// // //                           />
+// // //                           <input
+// // //                             type="text"
+// // //                             placeholder="Tracking Number"
+// // //                             value={trackingNumberInput}
+// // //                             onChange={(e) => setTrackingNumberInput(e.target.value)}
+// // //                             className="p-1.5 bg-white border border-[#E6E0D8] rounded text-xs font-mono"
+// // //                           />
+// // //                         </div>
+// // //                         <button
+// // //                           onClick={() => handleAssignTracking(selectedOrder.id)}
+// // //                           className="w-full py-1.5 bg-[#641D32] text-white text-xs font-semibold rounded hover:bg-[#4A1223]"
+// // //                         >
+// // //                           Save & Mark Order Shipped
+// // //                         </button>
+// // //                       </div>
+
+// // //                       {/* Refund Trigger if order eligible */}
+// // //                       {selectedOrder.paymentStatus === 'Paid' && selectedOrder.orderStatus !== 'Refunded' && (
+// // //                         <div className="pt-2 border-t border-[#E6E0D8] flex items-center justify-between">
+// // //                           <span className="text-[#766B61]">Need to cancel/refund?</span>
+// // //                           <button
+// // //                             onClick={() => handleProcessRefund(selectedOrder.id, selectedOrder.finalPayablePaise)}
+// // //                             className="px-3 py-1 bg-red-700 hover:bg-red-800 text-white rounded font-medium text-xs"
+// // //                           >
+// // //                             Process Refund ({formatPriceINR(selectedOrder.finalPayablePaise)})
+// // //                           </button>
+// // //                         </div>
+// // //                       )}
+// // //                     </div>
+// // //                   </div>
+// // //                 </div>
+// // //               )}
+// // //             </div>
+// // //           )}
+
+// // //           {/* 4. INVENTORY & STOCK */}
+// // //           {activeTab === 'inventory' && (
+// // //             <div className="space-y-6 max-w-6xl">
+// // //               <div>
+// // //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Handloom Inventory Management</h2>
+// // //                 <p className="text-xs text-[#766B61] mt-0.5">Real-time tracking of available stock, reserved stock, and physical stock adjustments.</p>
+// // //               </div>
+
+// // //               <div className="bg-white rounded-xl border border-[#E6E0D8] overflow-hidden shadow-xs">
+// // //                 <table className="w-full text-xs text-left">
+// // //                   <thead className="bg-[#FAF7F0] text-[#766B61] font-semibold border-b border-[#E6E0D8]">
+// // //                     <tr>
+// // //                       <th className="p-3">Saree Name</th>
+// // //                       <th className="p-3">Color Variant</th>
+// // //                       <th className="p-3">SKU</th>
+// // //                       <th className="p-3">On Hand</th>
+// // //                       <th className="p-3">Reserved</th>
+// // //                       <th className="p-3">Available</th>
+// // //                       <th className="p-3 text-right">Adjustment</th>
+// // //                     </tr>
+// // //                   </thead>
+// // //                   <tbody className="divide-y divide-[#E6E0D8]">
+// // //                     {products.flatMap((p) =>
+// // //                       p.variants.map((v) => {
+// // //                         const available = v.inventoryStock - v.reservedStock;
+// // //                         return (
+// // //                           <tr key={v.variantId} className="hover:bg-[#FAF7F0]/60">
+// // //                             <td className="p-3 font-medium text-[#292522]">{p.name}</td>
+// // //                             <td className="p-3 flex items-center gap-1.5">
+// // //                               <span className="w-3 h-3 rounded-full border" style={{ backgroundColor: v.colorHex }} />
+// // //                               <span>{v.colorName}</span>
+// // //                             </td>
+// // //                             <td className="p-3 font-mono text-[11px] text-[#766B61]">{v.sku}</td>
+// // //                             <td className="p-3 font-bold tabular-nums">{v.inventoryStock}</td>
+// // //                             <td className="p-3 tabular-nums text-amber-800">{v.reservedStock}</td>
+// // //                             <td className="p-3">
+// // //                               <span className={`font-bold tabular-nums ${available <= 3 ? 'text-amber-700' : 'text-emerald-700'}`}>
+// // //                                 {available} units
+// // //                               </span>
+// // //                             </td>
+// // //                             <td className="p-3 text-right">
+// // //                               <button
+// // //                                 onClick={() => setStockAdjustItem({
+// // //                                   productId: p.id,
+// // //                                   variantId: v.variantId,
+// // //                                   productName: p.name,
+// // //                                   colorName: v.colorName,
+// // //                                   currentStock: v.inventoryStock
+// // //                                 })}
+// // //                                 className="px-2.5 py-1 bg-[#FAF7F0] hover:bg-white text-[#641D32] border border-[#E6E0D8] rounded font-semibold text-[11px]"
+// // //                               >
+// // //                                 Adjust Stock
+// // //                               </button>
+// // //                             </td>
+// // //                           </tr>
+// // //                         );
+// // //                       })
+// // //                     )}
+// // //                   </tbody>
+// // //                 </table>
+// // //               </div>
+
+// // //               {/* Movement Logs */}
+// // //               <div className="bg-white rounded-xl border border-[#E6E0D8] p-6 shadow-xs space-y-3">
+// // //                 <h3 className="text-sm font-serif font-bold text-[#292522]">Stock Movement History</h3>
+// // //                 <div className="space-y-2 max-h-60 overflow-y-auto">
+// // //                   {movements.slice(0, 15).map((m) => (
+// // //                     <div key={m.id} className="flex items-center justify-between p-2 rounded bg-[#FAF7F0] text-xs">
+// // //                       <div>
+// // //                         <span className="font-semibold text-[#292522]">{m.productName} ({m.colorName})</span>
+// // //                         <span className="text-[#766B61] text-[11px] block">{m.reason} · {formatDate(m.timestamp)}</span>
+// // //                       </div>
+// // //                       <div className="text-right">
+// // //                         <span className={`font-bold tabular-nums ${m.quantityChange > 0 ? 'text-emerald-700' : 'text-red-700'}`}>
+// // //                           {m.quantityChange > 0 ? `+${m.quantityChange}` : m.quantityChange}
+// // //                         </span>
+// // //                         <span className="text-[11px] text-[#766B61] block">Stock: {m.stockAfter}</span>
+// // //                       </div>
+// // //                     </div>
+// // //                   ))}
+// // //                 </div>
+// // //               </div>
+// // //             </div>
+// // //           )}
+
+// // //           {/* 5. CATEGORIES & BANNERS */}
+// // //           {activeTab === 'categories' && (
+// // //             <div className="space-y-6 max-w-6xl">
+// // //               <div>
+// // //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Circular Saree Category Manager</h2>
+// // //                 <p className="text-xs text-[#766B61] mt-0.5">Control categories displayed on the customer homepage.</p>
+// // //               </div>
+
+// // //               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+// // //                 {categories.map((c) => (
+// // //                   <div key={c.id} className="bg-white rounded-xl border border-[#E6E0D8] p-4 flex items-center gap-3 shadow-xs">
+// // //                     <img src={c.imageUrl} alt={c.name} className="w-14 h-14 rounded-full object-cover border" />
+// // //                     <div className="flex-1">
+// // //                       <h4 className="text-xs font-bold text-[#292522] font-serif">{c.name}</h4>
+// // //                       <span className="text-[11px] text-emerald-700 font-semibold">Active Category</span>
+// // //                     </div>
+// // //                   </div>
+// // //                 ))}
+// // //               </div>
+// // //             </div>
+// // //           )}
+
+// // //           {/* 6. HERO BANNERS */}
+// // //           {activeTab === 'banners' && (
+// // //             <div className="space-y-6 max-w-6xl">
+// // //               <div>
+// // //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Promotional Hero Carousel Banners</h2>
+// // //                 <p className="text-xs text-[#766B61] mt-0.5">Manage banners rotating on the storefront homepage.</p>
+// // //               </div>
+
+// // //               <div className="space-y-4">
+// // //                 {banners.map((b) => (
+// // //                   <div key={b.id} className="bg-white rounded-xl border border-[#E6E0D8] p-4 flex gap-4 items-center shadow-xs">
+// // //                     <img src={b.imageUrl} alt={b.heading} className="w-32 h-20 rounded-lg object-cover" />
+// // //                     <div className="flex-1 space-y-1">
+// // //                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#C7A66A]">{b.badgeText}</span>
+// // //                       <h4 className="text-sm font-bold font-serif text-[#292522]">{b.heading}</h4>
+// // //                       <p className="text-xs text-[#766B61]">{b.subtitle}</p>
+// // //                     </div>
+// // //                   </div>
+// // //                 ))}
+// // //               </div>
+// // //             </div>
+// // //           )}
+
+// // //           {/* 7. COUPONS */}
+// // //           {activeTab === 'coupons' && (
+// // //             <div className="space-y-6 max-w-6xl">
+// // //               <div>
+// // //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Discount Coupons & Offers</h2>
+// // //                 <p className="text-xs text-[#766B61] mt-0.5">Create coupon codes (e.g. FESTIVE10, KOLHAPUR20) with minimum order values.</p>
+// // //               </div>
+
+// // //               {/* Add Coupon Form */}
+// // //               <form onSubmit={handleAddCoupon} className="bg-white p-5 rounded-xl border border-[#E6E0D8] flex flex-wrap gap-4 items-end shadow-xs text-xs">
+// // //                 <div>
+// // //                   <label className="font-semibold text-[#292522] block mb-1">Coupon Code</label>
+// // //                   <input
+// // //                     type="text"
+// // //                     placeholder="e.g. SPECIAL20"
+// // //                     value={newCouponCode}
+// // //                     onChange={(e) => setNewCouponCode(e.target.value)}
+// // //                     className="p-2 border border-[#E6E0D8] rounded bg-[#FAF7F0] font-mono font-bold"
+// // //                   />
+// // //                 </div>
+// // //                 <div>
+// // //                   <label className="font-semibold text-[#292522] block mb-1">Discount %</label>
+// // //                   <input
+// // //                     type="number"
+// // //                     min="1"
+// // //                     max="50"
+// // //                     value={newCouponDiscount}
+// // //                     onChange={(e) => setNewCouponDiscount(Number(e.target.value))}
+// // //                     className="p-2 border border-[#E6E0D8] rounded bg-[#FAF7F0] w-24"
+// // //                   />
+// // //                 </div>
+// // //                 <div>
+// // //                   <label className="font-semibold text-[#292522] block mb-1">Min Order (₹)</label>
+// // //                   <input
+// // //                     type="number"
+// // //                     value={newCouponMinOrder}
+// // //                     onChange={(e) => setNewCouponMinOrder(Number(e.target.value))}
+// // //                     className="p-2 border border-[#E6E0D8] rounded bg-[#FAF7F0] w-28"
+// // //                   />
+// // //                 </div>
+// // //                 <button
+// // //                   type="submit"
+// // //                   className="px-4 py-2.5 bg-[#641D32] hover:bg-[#4A1223] text-white font-semibold rounded"
+// // //                 >
+// // //                   Create Coupon Code
+// // //                 </button>
+// // //               </form>
+
+// // //               {/* Coupons list */}
+// // //               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+// // //                 {coupons.map((cp) => (
+// // //                   <div key={cp.id} className="bg-white p-5 rounded-xl border border-[#E6E0D8] space-y-2 shadow-xs">
+// // //                     <div className="flex justify-between items-start">
+// // //                       <span className="font-mono font-bold text-base text-[#641D32] bg-[#FAF7F0] px-2 py-0.5 rounded border border-[#E6E0D8]">
+// // //                         {cp.code}
+// // //                       </span>
+// // //                       <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
+// // //                         {cp.discountPercentage}% OFF
+// // //                       </span>
+// // //                     </div>
+// // //                     <p className="text-xs text-[#766B61]">{cp.description}</p>
+// // //                     <div className="text-[11px] text-[#766B61] pt-2 border-t border-[#E6E0D8]">
+// // //                       Min Order: ₹{Math.round(cp.minOrderValuePaise / 100).toLocaleString('en-IN')} · Redemptions: {cp.usedCount}
+// // //                     </div>
+// // //                   </div>
+// // //                 ))}
+// // //               </div>
+// // //             </div>
+// // //           )}
+
+// // //           {/* 8. SETTINGS */}
+// // //           {activeTab === 'settings' && (
+// // //             <div className="space-y-6 max-w-4xl">
+// // //               <div>
+// // //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Store Configuration & Policies</h2>
+// // //                 <p className="text-xs text-[#766B61] mt-0.5">Control announcement banner messages, business address, and shipping fees.</p>
+// // //               </div>
+
+// // //               {/* Rotating Announcement Bar Manager */}
+// // //               <div className="bg-white p-6 rounded-xl border border-[#E6E0D8] space-y-4 shadow-xs">
+// // //                 <h3 className="text-sm font-serif font-bold text-[#292522]">Homepage Announcement Bar Messages</h3>
+// // //                 <div className="space-y-2">
+// // //                   {settings.announcementMessages.map((msg, idx) => (
+// // //                     <div key={idx} className="flex items-center justify-between p-2.5 bg-[#FAF7F0] rounded border border-[#E6E0D8] text-xs">
+// // //                       <span>{msg}</span>
+// // //                       <button
+// // //                         onClick={() => handleRemoveAnnouncement(idx)}
+// // //                         className="text-red-600 hover:text-red-800 text-xs font-semibold"
+// // //                       >
+// // //                         Remove
+// // //                       </button>
+// // //                     </div>
+// // //                   ))}
+// // //                 </div>
+
+// // //                 <div className="flex gap-2 pt-2">
+// // //                   <input
+// // //                     type="text"
+// // //                     placeholder="Add promotional message for the top bar..."
+// // //                     value={announcementInput}
+// // //                     onChange={(e) => setAnnouncementInput(e.target.value)}
+// // //                     className="flex-1 p-2 text-xs bg-[#FAF7F0] border border-[#E6E0D8] rounded focus:outline-none focus:border-[#641D32]"
+// // //                   />
+// // //                   <button
+// // //                     onClick={handleAddAnnouncement}
+// // //                     className="px-4 py-2 bg-[#641D32] hover:bg-[#4A1223] text-white text-xs font-semibold rounded"
+// // //                   >
+// // //                     Add Message
+// // //                   </button>
+// // //                 </div>
+// // //               </div>
+
+// // //               {/* Business Contact & Shipping */}
+// // //               <div className="bg-white p-6 rounded-xl border border-[#E6E0D8] space-y-4 shadow-xs text-xs">
+// // //                 <h3 className="text-sm font-serif font-bold text-[#292522]">Brand & Shipping Rules</h3>
+// // //                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+// // //                   <div>
+// // //                     <label className="font-semibold block mb-1">Business Phone & WhatsApp</label>
+// // //                     <input
+// // //                       type="text"
+// // //                       value={settings.businessPhone}
+// // //                       onChange={(e) => storeService.updateSettings({ businessPhone: e.target.value, whatsappContact: e.target.value }, 'Owner')}
+// // //                       className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+// // //                     />
+// // //                   </div>
+// // //                   <div>
+// // //                     <label className="font-semibold block mb-1">Instagram Handle</label>
+// // //                     <input
+// // //                       type="text"
+// // //                       value={settings.instagramHandle}
+// // //                       onChange={(e) => storeService.updateSettings({ instagramHandle: e.target.value }, 'Owner')}
+// // //                       className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+// // //                     />
+// // //                   </div>
+// // //                   <div className="sm:col-span-2">
+// // //                     <label className="font-semibold block mb-1">Physical Boutique Address</label>
+// // //                     <input
+// // //                       type="text"
+// // //                       value={settings.businessAddress}
+// // //                       onChange={(e) => storeService.updateSettings({ businessAddress: e.target.value }, 'Owner')}
+// // //                       className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+// // //                     />
+// // //                   </div>
+// // //                 </div>
+// // //               </div>
+// // //             </div>
+// // //           )}
+
+// // //           {/* 9. AUDIT LOGS */}
+// // //           {activeTab === 'audit' && (
+// // //             <div className="space-y-6 max-w-6xl">
+// // //               <div>
+// // //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Security & Action Audit Logs</h2>
+// // //                 <p className="text-xs text-[#766B61] mt-0.5">Chronological record of every administrative action, stock mutation, and order transition.</p>
+// // //               </div>
+
+// // //               <div className="bg-white rounded-xl border border-[#E6E0D8] p-5 shadow-xs">
+// // //                 <div className="space-y-3 max-h-[600px] overflow-y-auto">
+// // //                   {auditLogs.map((log) => (
+// // //                     <div key={log.id} className="p-3 bg-[#FAF7F0] rounded border border-[#E6E0D8] text-xs flex items-start justify-between">
+// // //                       <div>
+// // //                         <span className="font-semibold text-[#641D32] uppercase tracking-wider text-[10px]">
+// // //                           [{log.entityType}]
+// // //                         </span>
+// // //                         <p className="font-medium text-[#292522] mt-0.5">{log.details}</p>
+// // //                         <span className="text-[#766B61] text-[11px] block mt-0.5">
+// // //                           By: {log.performedBy}
+// // //                         </span>
+// // //                       </div>
+// // //                       <span className="text-[#766B61] text-[11px] shrink-0">
+// // //                         {formatDate(log.timestamp)}
+// // //                       </span>
+// // //                     </div>
+// // //                   ))}
+// // //                 </div>
+// // //               </div>
+// // //             </div>
+// // //           )}
+
+// // //         </main>
+// // //       </div>
+
+// // //       {/* Stock Adjustment Dialog */}
+// // //       {stockAdjustItem && (
+// // //         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+// // //           <form onSubmit={handlePerformStockAdjustment} className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-[#E6E0D8] space-y-4 text-xs">
+// // //             <h3 className="text-base font-serif font-bold text-[#292522]">
+// // //               Adjust Handloom Stock: {stockAdjustItem.productName}
+// // //             </h3>
+// // //             <p className="text-[#766B61]">Color: {stockAdjustItem.colorName} · Current on-hand: {stockAdjustItem.currentStock} units</p>
+
+// // //             <div>
+// // //               <label className="font-semibold block mb-1">Quantity Change (+ to add, - to subtract)</label>
+// // //               <input
+// // //                 type="number"
+// // //                 value={adjustmentAmount}
+// // //                 onChange={(e) => setAdjustmentAmount(Number(e.target.value))}
+// // //                 className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded font-bold"
+// // //               />
+// // //             </div>
+
+// // //             <div>
+// // //               <label className="font-semibold block mb-1">Reason for Adjustment</label>
+// // //               <input
+// // //                 type="text"
+// // //                 value={adjustmentReason}
+// // //                 onChange={(e) => setAdjustmentReason(e.target.value)}
+// // //                 className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+// // //               />
+// // //             </div>
+
+// // //             <div className="flex gap-2 pt-2">
+// // //               <button
+// // //                 type="button"
+// // //                 onClick={() => setStockAdjustItem(null)}
+// // //                 className="flex-1 py-2 border border-[#E6E0D8] rounded font-medium hover:bg-[#FAF7F0]"
+// // //               >
+// // //                 Cancel
+// // //               </button>
+// // //               <button
+// // //                 type="submit"
+// // //                 className="flex-1 py-2 bg-[#641D32] hover:bg-[#4A1223] text-white font-semibold rounded"
+// // //               >
+// // //                 Confirm Update
+// // //               </button>
+// // //             </div>
+// // //           </form>
+// // //         </div>
+// // //       )}
+
+// // //       {/* Add / Edit Saree Modal */}
+// // //       {isProductModalOpen && editingProduct && (
+// // //         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+// // //           <form onSubmit={handleSaveProduct} className="bg-white rounded-xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-[#E6E0D8] space-y-4 max-h-[90vh] overflow-y-auto text-xs">
+// // //             <div className="flex items-center justify-between pb-3 border-b border-[#E6E0D8]">
+// // //               <h3 className="text-base font-serif font-bold text-[#292522]">
+// // //                 {editingProduct.id ? 'Edit Saree Specifications' : 'Add New Saree to Catalog'}
+// // //               </h3>
+// // //               <button type="button" onClick={() => setIsProductModalOpen(false)} className="text-[#766B61]">✕</button>
+// // //             </div>
+
+// // //             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+// // //               <div className="sm:col-span-2">
+// // //                 <label className="font-semibold block mb-1">Saree Name</label>
+// // //                 <input
+// // //                   type="text"
+// // //                   required
+// // //                   value={editingProduct.name || ''}
+// // //                   onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+// // //                   placeholder="e.g. Royal Kolhapuri Paithani Pure Silk Saree"
+// // //                   className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+// // //                 />
+// // //               </div>
+
+// // //               <div>
+// // //                 <label className="font-semibold block mb-1">Fabric</label>
+// // //                 <input
+// // //                   type="text"
+// // //                   value={editingProduct.fabric || ''}
+// // //                   onChange={(e) => setEditingProduct({ ...editingProduct, fabric: e.target.value })}
+// // //                   className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+// // //                 />
+// // //               </div>
+
+// // //               <div>
+// // //                 <label className="font-semibold block mb-1">Occasion</label>
+// // //                 <input
+// // //                   type="text"
+// // //                   value={editingProduct.occasion || ''}
+// // //                   onChange={(e) => setEditingProduct({ ...editingProduct, occasion: e.target.value })}
+// // //                   className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+// // //                 />
+// // //               </div>
+
+// // //               <div>
+// // //                 <label className="font-semibold block mb-1">Original Price (₹)</label>
+// // //                 <input
+// // //                   type="number"
+// // //                   value={editingProduct.variants?.[0] ? Math.round(editingProduct.variants[0].originalPricePaise / 100) : 15999}
+// // //                   onChange={(e) => {
+// // //                     const price = Number(e.target.value) * 100;
+// // //                     const variants = [...(editingProduct.variants || [])];
+// // //                     if (variants[0]) variants[0].originalPricePaise = price;
+// // //                     setEditingProduct({ ...editingProduct, variants });
+// // //                   }}
+// // //                   className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+// // //                 />
+// // //               </div>
+
+// // //               <div>
+// // //                 <label className="font-semibold block mb-1">Discounted Selling Price (₹)</label>
+// // //                 <input
+// // //                   type="number"
+// // //                   value={editingProduct.variants?.[0] ? Math.round(editingProduct.variants[0].sellingPricePaise / 100) : 12999}
+// // //                   onChange={(e) => {
+// // //                     const price = Number(e.target.value) * 100;
+// // //                     const variants = [...(editingProduct.variants || [])];
+// // //                     if (variants[0]) variants[0].sellingPricePaise = price;
+// // //                     setEditingProduct({ ...editingProduct, variants });
+// // //                   }}
+// // //                   className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+// // //                 />
+// // //               </div>
+
+// // //               <div className="sm:col-span-2">
+// // //                 <label className="font-semibold block mb-1">Detailed Weaving Description</label>
+// // //                 <textarea
+// // //                   rows={3}
+// // //                   value={editingProduct.description || ''}
+// // //                   onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+// // //                   className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+// // //                 />
+// // //               </div>
+// // //             </div>
+
+// // //             <div className="flex gap-2 pt-4 border-t border-[#E6E0D8]">
+// // //               <button
+// // //                 type="button"
+// // //                 onClick={() => setIsProductModalOpen(false)}
+// // //                 className="flex-1 py-2 border border-[#E6E0D8] rounded font-medium hover:bg-[#FAF7F0]"
+// // //               >
+// // //                 Cancel
+// // //               </button>
+// // //               <button
+// // //                 type="submit"
+// // //                 className="flex-1 py-2 bg-[#641D32] hover:bg-[#4A1223] text-white font-semibold rounded"
+// // //               >
+// // //                 Save Saree
+// // //               </button>
+// // //             </div>
+// // //           </form>
+// // //         </div>
+// // //       )}
+// // //     </div>
+// // //   );
+// // // };
+
+// // //=====================
+// // import React, { useState, useEffect } from "react";
 // // import {
 // //   LayoutDashboard,
 // //   Package,
@@ -19,8 +1167,8 @@
 // //   CheckCircle,
 // //   RefreshCw,
 // //   Search,
-// //   ExternalLink
-// // } from 'lucide-react';
+// //   ExternalLink,
+// // } from "lucide-react";
 // // import {
 // //   SareeProduct,
 // //   CategoryItem,
@@ -30,10 +1178,14 @@
 // //   OrderStatus,
 // //   InventoryMovement,
 // //   StoreSettings,
-// //   AuditLogItem
-// // } from '../../types/index.ts';
-// // import { storeService } from '../../services/storeService.ts';
-// // import { formatPriceINR, formatDate } from '../../utils/formatters.ts';
+// //   AuditLogItem,
+// // } from "../../types/index.ts";
+// // import { storeService } from "../../services/storeService.ts";
+// // import { formatPriceINR, formatDate } from "../../utils/formatters.ts";
+// // import { cld } from "../../lib/cloudinaryUrl.ts";
+// // import ProductVariantsEditor, {
+// //   validateVariants,
+// // } from "./ProductVariantsEditor.tsx";
 
 // // interface AdminPortalProps {
 // //   onExitToStore: () => void;
@@ -41,8 +1193,16 @@
 
 // // export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
 // //   const [activeTab, setActiveTab] = useState<
-// //     'dashboard' | 'products' | 'orders' | 'inventory' | 'categories' | 'banners' | 'coupons' | 'settings' | 'audit'
-// //   >('dashboard');
+// //     | "dashboard"
+// //     | "products"
+// //     | "orders"
+// //     | "inventory"
+// //     | "categories"
+// //     | "banners"
+// //     | "coupons"
+// //     | "settings"
+// //     | "audit"
+// //   >("dashboard");
 
 // //   const [session, setSession] = useState(storeService.getSession());
 // //   const [stats, setStats] = useState(storeService.getDashboardStats());
@@ -53,26 +1213,41 @@
 // //   const [coupons, setCoupons] = useState<Coupon[]>([]);
 // //   const [movements, setMovements] = useState<InventoryMovement[]>([]);
 // //   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
-// //   const [settings, setSettings] = useState<StoreSettings>(storeService.getSettings());
+// //   const [settings, setSettings] = useState<StoreSettings>(
+// //     storeService.getSettings(),
+// //   );
 
 // //   // Editing modals
-// //   const [editingProduct, setEditingProduct] = useState<Partial<SareeProduct> | null>(null);
+// //   const [editingProduct, setEditingProduct] =
+// //     useState<Partial<SareeProduct> | null>(null);
 // //   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-// //   const [stockAdjustItem, setStockAdjustItem] = useState<{ productId: string; variantId: string; productName: string; colorName: string; currentStock: number } | null>(null);
+// //   const [uploading, setUploading] = useState(false);
+// //   const [formError, setFormError] = useState("");
+// //   const [stockAdjustItem, setStockAdjustItem] = useState<{
+// //     productId: string;
+// //     variantId: string;
+// //     productName: string;
+// //     colorName: string;
+// //     currentStock: number;
+// //   } | null>(null);
 // //   const [adjustmentAmount, setAdjustmentAmount] = useState(5);
-// //   const [adjustmentReason, setAdjustmentReason] = useState('New handloom shipment arrived from Kolhapur weavers');
+// //   const [adjustmentReason, setAdjustmentReason] = useState(
+// //     "New handloom shipment arrived from Kolhapur weavers",
+// //   );
 // //   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-// //   const [courierInput, setCourierInput] = useState('Blue Dart Express');
-// //   const [trackingNumberInput, setTrackingNumberInput] = useState('');
-// //   const [trackingUrlInput, setTrackingUrlInput] = useState('https://www.bluedart.com');
+// //   const [courierInput, setCourierInput] = useState("Blue Dart Express");
+// //   const [trackingNumberInput, setTrackingNumberInput] = useState("");
+// //   const [trackingUrlInput, setTrackingUrlInput] = useState(
+// //     "https://www.bluedart.com",
+// //   );
 
 // //   // Coupon form
-// //   const [newCouponCode, setNewCouponCode] = useState('');
+// //   const [newCouponCode, setNewCouponCode] = useState("");
 // //   const [newCouponDiscount, setNewCouponDiscount] = useState(15);
 // //   const [newCouponMinOrder, setNewCouponMinOrder] = useState(4999);
 
 // //   // Settings form
-// //   const [announcementInput, setAnnouncementInput] = useState('');
+// //   const [announcementInput, setAnnouncementInput] = useState("");
 
 // //   useEffect(() => {
 // //     const update = () => {
@@ -93,26 +1268,58 @@
 
 // //   const handleAdminAuth = () => {
 // //     storeService.setSession({
-// //       email: 'ankitakhot015@gmail.com',
-// //       fullName: 'Ankita Khot (Owner)',
-// //       phone: '9096863092',
-// //       role: 'admin',
-// //       token: 'adm_kfs_' + Date.now()
+// //       email: "ankitakhot015@gmail.com",
+// //       fullName: "Ankita Khot (Owner)",
+// //       phone: "9096863092",
+// //       role: "admin",
+// //       token: "adm_kfs_" + Date.now(),
 // //     });
+// //   };
+
+// //   const closeProductModal = () => {
+// //     if (uploading && !confirm("Photos are still uploading. Close anyway?"))
+// //       return;
+// //     setUploading(false);
+// //     setFormError("");
+// //     setIsProductModalOpen(false);
+// //     setEditingProduct(null);
 // //   };
 
 // //   const handleSaveProduct = (e: React.FormEvent) => {
 // //     e.preventDefault();
 // //     if (!editingProduct?.name) return;
 
-// //     storeService.saveProduct(editingProduct, session?.fullName || 'Owner');
+// //     if (uploading) {
+// //       setFormError("Please wait until all photos finish uploading.");
+// //       return;
+// //     }
+
+// //     const variants = editingProduct.variants ?? [];
+// //     const error = validateVariants(variants);
+// //     if (error) {
+// //       setFormError(error);
+// //       return;
+// //     }
+
+// //     storeService.saveProduct(
+// //       {
+// //         ...editingProduct,
+// //         variants,
+// //         // main photo = first photo of the first colour (used by cards and cart)
+// //         primaryImage: variants[0].images[0],
+// //       },
+// //       session?.fullName || "Owner",
+// //     );
+
+// //     setFormError("");
+// //     setUploading(false);
 // //     setIsProductModalOpen(false);
 // //     setEditingProduct(null);
 // //   };
 
 // //   const handleDeleteProduct = (id: string) => {
-// //     if (confirm('Are you sure you want to delete this saree?')) {
-// //       storeService.deleteProduct(id, session?.fullName || 'Owner');
+// //     if (confirm("Are you sure you want to delete this saree?")) {
+// //       storeService.deleteProduct(id, session?.fullName || "Owner");
 // //     }
 // //   };
 
@@ -125,13 +1332,18 @@
 // //       variantId: stockAdjustItem.variantId,
 // //       adjustment: Number(adjustmentAmount),
 // //       reason: adjustmentReason,
-// //       performedBy: session?.fullName || 'Owner'
+// //       performedBy: session?.fullName || "Owner",
 // //     });
 // //     setStockAdjustItem(null);
 // //   };
 
 // //   const handleUpdateOrderStatus = (orderId: string, status: OrderStatus) => {
-// //     storeService.updateOrderStatus(orderId, status, session?.fullName || 'Owner', `Status updated in admin console`);
+// //     storeService.updateOrderStatus(
+// //       orderId,
+// //       status,
+// //       session?.fullName || "Owner",
+// //       `Status updated in admin console`,
+// //     );
 // //     if (selectedOrder?.id === orderId) {
 // //       setSelectedOrder(storeService.getOrderById(orderId) || null);
 // //     }
@@ -139,20 +1351,28 @@
 
 // //   const handleAssignTracking = (orderId: string) => {
 // //     if (!trackingNumberInput) return;
-// //     storeService.updateShipmentDetails(orderId, {
-// //       courierName: courierInput,
-// //       trackingNumber: trackingNumberInput,
-// //       trackingUrl: trackingUrlInput
-// //     }, session?.fullName || 'Owner');
+// //     storeService.updateShipmentDetails(
+// //       orderId,
+// //       {
+// //         courierName: courierInput,
+// //         trackingNumber: trackingNumberInput,
+// //         trackingUrl: trackingUrlInput,
+// //       },
+// //       session?.fullName || "Owner",
+// //     );
 // //     if (selectedOrder?.id === orderId) {
 // //       setSelectedOrder(storeService.getOrderById(orderId) || null);
 // //     }
-// //     setTrackingNumberInput('');
+// //     setTrackingNumberInput("");
 // //   };
 
 // //   const handleProcessRefund = (orderId: string, amountPaise: number) => {
 // //     if (confirm(`Confirm refund of ${formatPriceINR(amountPaise)}?`)) {
-// //       storeService.processOrderRefund(orderId, amountPaise, session?.fullName || 'Owner');
+// //       storeService.processOrderRefund(
+// //         orderId,
+// //         amountPaise,
+// //         session?.fullName || "Owner",
+// //       );
 // //       if (selectedOrder?.id === orderId) {
 // //         setSelectedOrder(storeService.getOrderById(orderId) || null);
 // //       }
@@ -162,29 +1382,41 @@
 // //   const handleAddCoupon = (e: React.FormEvent) => {
 // //     e.preventDefault();
 // //     if (!newCouponCode) return;
-// //     storeService.saveCoupon({
-// //       code: newCouponCode.toUpperCase().trim(),
-// //       description: `Save ${newCouponDiscount}% on orders above ₹${newCouponMinOrder}`,
-// //       discountPercentage: Number(newCouponDiscount),
-// //       minOrderValuePaise: Number(newCouponMinOrder) * 100,
-// //       maxDiscountPaise: 300000,
-// //       usageLimit: 200,
-// //       isActive: true,
-// //       validUntil: '2026-12-31'
-// //     }, session?.fullName || 'Owner');
-// //     setNewCouponCode('');
+// //     storeService.saveCoupon(
+// //       {
+// //         code: newCouponCode.toUpperCase().trim(),
+// //         description: `Save ${newCouponDiscount}% on orders above ₹${newCouponMinOrder}`,
+// //         discountPercentage: Number(newCouponDiscount),
+// //         minOrderValuePaise: Number(newCouponMinOrder) * 100,
+// //         maxDiscountPaise: 300000,
+// //         usageLimit: 200,
+// //         isActive: true,
+// //         validUntil: "2026-12-31",
+// //       },
+// //       session?.fullName || "Owner",
+// //     );
+// //     setNewCouponCode("");
 // //   };
 
 // //   const handleAddAnnouncement = () => {
 // //     if (!announcementInput.trim()) return;
-// //     const current = [...(settings.announcementMessages || []), announcementInput.trim()];
-// //     storeService.updateSettings({ announcementMessages: current }, session?.fullName || 'Owner');
-// //     setAnnouncementInput('');
+// //     const current = [
+// //       ...(settings.announcementMessages || []),
+// //       announcementInput.trim(),
+// //     ];
+// //     storeService.updateSettings(
+// //       { announcementMessages: current },
+// //       session?.fullName || "Owner",
+// //     );
+// //     setAnnouncementInput("");
 // //   };
 
 // //   const handleRemoveAnnouncement = (index: number) => {
 // //     const current = settings.announcementMessages.filter((_, i) => i !== index);
-// //     storeService.updateSettings({ announcementMessages: current }, session?.fullName || 'Owner');
+// //     storeService.updateSettings(
+// //       { announcementMessages: current },
+// //       session?.fullName || "Owner",
+// //     );
 // //   };
 
 // //   return (
@@ -200,13 +1432,19 @@
 // //             <span>Customer Website</span>
 // //           </button>
 // //           <div className="flex items-center gap-2">
-// //             <span className="font-serif font-bold text-lg text-[#FAF7F0]">Kolhapuri Fashion Saree</span>
-// //             <span className="text-[11px] text-[#C7A66A] font-semibold bg-[#4A1223] px-2 py-0.5 rounded">Owner Portal</span>
+// //             <span className="font-serif font-bold text-lg text-[#FAF7F0]">
+// //               Kolhapuri Fashion Saree
+// //             </span>
+// //             <span className="text-[11px] text-[#C7A66A] font-semibold bg-[#4A1223] px-2 py-0.5 rounded">
+// //               Owner Portal
+// //             </span>
 // //           </div>
 // //         </div>
 
 // //         <div className="flex items-center gap-3 text-xs">
-// //           <span className="hidden sm:inline text-white/80">Owner: Ankita Khot</span>
+// //           <span className="hidden sm:inline text-white/80">
+// //             Owner: Ankita Khot
+// //           </span>
 // //           <button
 // //             onClick={onExitToStore}
 // //             className="p-1.5 hover:text-[#C7A66A] transition-colors"
@@ -223,9 +1461,11 @@
 // //         <aside className="w-60 bg-white border-r border-[#E6E0D8] p-4 flex flex-col justify-between shrink-0">
 // //           <div className="space-y-1">
 // //             <button
-// //               onClick={() => setActiveTab('dashboard')}
+// //               onClick={() => setActiveTab("dashboard")}
 // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-// //                 activeTab === 'dashboard' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// //                 activeTab === "dashboard"
+// //                   ? "bg-[#641D32] text-white"
+// //                   : "text-[#292522] hover:bg-[#FAF7F0]"
 // //               }`}
 // //             >
 // //               <LayoutDashboard className="w-4 h-4" />
@@ -233,9 +1473,11 @@
 // //             </button>
 
 // //             <button
-// //               onClick={() => setActiveTab('orders')}
+// //               onClick={() => setActiveTab("orders")}
 // //               className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-// //                 activeTab === 'orders' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// //                 activeTab === "orders"
+// //                   ? "bg-[#641D32] text-white"
+// //                   : "text-[#292522] hover:bg-[#FAF7F0]"
 // //               }`}
 // //             >
 // //               <div className="flex items-center gap-2.5">
@@ -250,9 +1492,11 @@
 // //             </button>
 
 // //             <button
-// //               onClick={() => setActiveTab('products')}
+// //               onClick={() => setActiveTab("products")}
 // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-// //                 activeTab === 'products' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// //                 activeTab === "products"
+// //                   ? "bg-[#641D32] text-white"
+// //                   : "text-[#292522] hover:bg-[#FAF7F0]"
 // //               }`}
 // //             >
 // //               <Package className="w-4 h-4" />
@@ -260,9 +1504,11 @@
 // //             </button>
 
 // //             <button
-// //               onClick={() => setActiveTab('inventory')}
+// //               onClick={() => setActiveTab("inventory")}
 // //               className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-// //                 activeTab === 'inventory' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// //                 activeTab === "inventory"
+// //                   ? "bg-[#641D32] text-white"
+// //                   : "text-[#292522] hover:bg-[#FAF7F0]"
 // //               }`}
 // //             >
 // //               <div className="flex items-center gap-2.5">
@@ -277,9 +1523,11 @@
 // //             </button>
 
 // //             <button
-// //               onClick={() => setActiveTab('categories')}
+// //               onClick={() => setActiveTab("categories")}
 // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-// //                 activeTab === 'categories' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// //                 activeTab === "categories"
+// //                   ? "bg-[#641D32] text-white"
+// //                   : "text-[#292522] hover:bg-[#FAF7F0]"
 // //               }`}
 // //             >
 // //               <Layers className="w-4 h-4" />
@@ -287,9 +1535,11 @@
 // //             </button>
 
 // //             <button
-// //               onClick={() => setActiveTab('banners')}
+// //               onClick={() => setActiveTab("banners")}
 // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-// //                 activeTab === 'banners' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// //                 activeTab === "banners"
+// //                   ? "bg-[#641D32] text-white"
+// //                   : "text-[#292522] hover:bg-[#FAF7F0]"
 // //               }`}
 // //             >
 // //               <Image className="w-4 h-4" />
@@ -297,9 +1547,11 @@
 // //             </button>
 
 // //             <button
-// //               onClick={() => setActiveTab('coupons')}
+// //               onClick={() => setActiveTab("coupons")}
 // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-// //                 activeTab === 'coupons' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// //                 activeTab === "coupons"
+// //                   ? "bg-[#641D32] text-white"
+// //                   : "text-[#292522] hover:bg-[#FAF7F0]"
 // //               }`}
 // //             >
 // //               <Tag className="w-4 h-4" />
@@ -307,9 +1559,11 @@
 // //             </button>
 
 // //             <button
-// //               onClick={() => setActiveTab('settings')}
+// //               onClick={() => setActiveTab("settings")}
 // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-// //                 activeTab === 'settings' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// //                 activeTab === "settings"
+// //                   ? "bg-[#641D32] text-white"
+// //                   : "text-[#292522] hover:bg-[#FAF7F0]"
 // //               }`}
 // //             >
 // //               <Settings className="w-4 h-4" />
@@ -317,9 +1571,11 @@
 // //             </button>
 
 // //             <button
-// //               onClick={() => setActiveTab('audit')}
+// //               onClick={() => setActiveTab("audit")}
 // //               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-// //                 activeTab === 'audit' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
+// //                 activeTab === "audit"
+// //                   ? "bg-[#641D32] text-white"
+// //                   : "text-[#292522] hover:bg-[#FAF7F0]"
 // //               }`}
 // //             >
 // //               <FileText className="w-4 h-4" />
@@ -328,64 +1584,90 @@
 // //           </div>
 
 // //           <div className="pt-4 border-t border-[#E6E0D8] text-[11px] text-[#766B61]">
-// //             <p><strong>Boutique Address:</strong></p>
+// //             <p>
+// //               <strong>Boutique Address:</strong>
+// //             </p>
 // //             <p className="mt-0.5 leading-tight">{settings.businessAddress}</p>
-// //             <p className="mt-1 font-semibold text-[#641D32]">Ph: {settings.businessPhone}</p>
+// //             <p className="mt-1 font-semibold text-[#641D32]">
+// //               Ph: {settings.businessPhone}
+// //             </p>
 // //           </div>
 // //         </aside>
 
 // //         {/* Tab View Content */}
 // //         <main className="flex-1 overflow-y-auto p-6 sm:p-8">
-
 // //           {/* 1. DASHBOARD */}
-// //           {activeTab === 'dashboard' && (
+// //           {activeTab === "dashboard" && (
 // //             <div className="space-y-8 max-w-6xl">
 // //               <div>
-// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Boutique Performance Dashboard</h2>
-// //                 <p className="text-xs text-[#766B61] mt-0.5">Authoritative metrics calculated from real database orders and stock movements.</p>
+// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">
+// //                   Boutique Performance Dashboard
+// //                 </h2>
+// //                 <p className="text-xs text-[#766B61] mt-0.5">
+// //                   Authoritative metrics calculated from real database orders and
+// //                   stock movements.
+// //                 </p>
 // //               </div>
 
 // //               {/* KPI Cards */}
 // //               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 // //                 <div className="bg-white p-5 rounded-xl border border-[#E6E0D8] shadow-xs space-y-1">
-// //                   <span className="text-xs text-[#766B61] font-medium">Confirmed Paid Revenue</span>
+// //                   <span className="text-xs text-[#766B61] font-medium">
+// //                     Confirmed Paid Revenue
+// //                   </span>
 // //                   <div className="text-2xl font-bold text-[#641D32] tabular-nums font-sans">
 // //                     {formatPriceINR(stats.confirmedPaidRevenuePaise)}
 // //                   </div>
-// //                   <span className="text-[11px] text-emerald-700 font-semibold">100% Verified Razorpay</span>
+// //                   <span className="text-[11px] text-emerald-700 font-semibold">
+// //                     100% Verified Razorpay
+// //                   </span>
 // //                 </div>
 
 // //                 <div className="bg-white p-5 rounded-xl border border-[#E6E0D8] shadow-xs space-y-1">
-// //                   <span className="text-xs text-[#766B61] font-medium">Total Orders Placed</span>
+// //                   <span className="text-xs text-[#766B61] font-medium">
+// //                     Total Orders Placed
+// //                   </span>
 // //                   <div className="text-2xl font-bold text-[#292522] tabular-nums font-sans">
 // //                     {stats.totalOrders}
 // //                   </div>
-// //                   <span className="text-[11px] text-[#766B61]">{stats.processingOrders} in processing / packaging</span>
+// //                   <span className="text-[11px] text-[#766B61]">
+// //                     {stats.processingOrders} in processing / packaging
+// //                   </span>
 // //                 </div>
 
 // //                 <div className="bg-white p-5 rounded-xl border border-[#E6E0D8] shadow-xs space-y-1">
-// //                   <span className="text-xs text-[#766B61] font-medium">Active Saree Weaves</span>
+// //                   <span className="text-xs text-[#766B61] font-medium">
+// //                     Active Saree Weaves
+// //                   </span>
 // //                   <div className="text-2xl font-bold text-[#292522] tabular-nums font-sans">
 // //                     {stats.totalProducts}
 // //                   </div>
-// //                   <span className="text-[11px] text-[#766B61]">Across Paithani & Bridal Silks</span>
+// //                   <span className="text-[11px] text-[#766B61]">
+// //                     Across Paithani & Bridal Silks
+// //                   </span>
 // //                 </div>
 
 // //                 <div className="bg-white p-5 rounded-xl border border-[#E6E0D8] shadow-xs space-y-1">
-// //                   <span className="text-xs text-[#766B61] font-medium">Low Stock Alerts</span>
+// //                   <span className="text-xs text-[#766B61] font-medium">
+// //                     Low Stock Alerts
+// //                   </span>
 // //                   <div className="text-2xl font-bold text-amber-700 tabular-nums font-sans">
 // //                     {stats.lowStockProducts}
 // //                   </div>
-// //                   <span className="text-[11px] text-amber-800">Requires weaver restocking</span>
+// //                   <span className="text-[11px] text-amber-800">
+// //                     Requires weaver restocking
+// //                   </span>
 // //                 </div>
 // //               </div>
 
 // //               {/* Recent Orders in Dashboard */}
 // //               <div className="bg-white rounded-xl border border-[#E6E0D8] p-6 shadow-xs space-y-4">
 // //                 <div className="flex items-center justify-between">
-// //                   <h3 className="text-base font-serif font-bold text-[#292522]">Recent Orders</h3>
+// //                   <h3 className="text-base font-serif font-bold text-[#292522]">
+// //                     Recent Orders
+// //                   </h3>
 // //                   <button
-// //                     onClick={() => setActiveTab('orders')}
+// //                     onClick={() => setActiveTab("orders")}
 // //                     className="text-xs font-semibold text-[#641D32] hover:underline"
 // //                   >
 // //                     View All Orders →
@@ -407,22 +1689,40 @@
 // //                     <tbody className="divide-y divide-[#E6E0D8]">
 // //                       {orders.slice(0, 5).map((o) => (
 // //                         <tr key={o.id} className="hover:bg-[#FAF7F0]/60">
-// //                           <td className="p-3 font-mono font-bold text-[#641D32]">#{o.orderNumber}</td>
-// //                           <td className="p-3">
-// //                             <span className="font-semibold text-[#292522] block">{o.customerName}</span>
-// //                             <span className="text-[#766B61] text-[11px]">{o.customerEmail}</span>
+// //                           <td className="p-3 font-mono font-bold text-[#641D32]">
+// //                             #{o.orderNumber}
 // //                           </td>
-// //                           <td className="p-3 truncate max-w-[180px]">{o.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</td>
-// //                           <td className="p-3 font-bold tabular-nums font-sans">{formatPriceINR(o.finalPayablePaise)}</td>
 // //                           <td className="p-3">
-// //                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-// //                               o.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-// //                             }`}>
+// //                             <span className="font-semibold text-[#292522] block">
+// //                               {o.customerName}
+// //                             </span>
+// //                             <span className="text-[#766B61] text-[11px]">
+// //                               {o.customerEmail}
+// //                             </span>
+// //                           </td>
+// //                           <td className="p-3 truncate max-w-[180px]">
+// //                             {o.items
+// //                               .map((i) => `${i.quantity}x ${i.name}`)
+// //                               .join(", ")}
+// //                           </td>
+// //                           <td className="p-3 font-bold tabular-nums font-sans">
+// //                             {formatPriceINR(o.finalPayablePaise)}
+// //                           </td>
+// //                           <td className="p-3">
+// //                             <span
+// //                               className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+// //                                 o.paymentStatus === "Paid"
+// //                                   ? "bg-emerald-100 text-emerald-800"
+// //                                   : "bg-amber-100 text-amber-800"
+// //                               }`}
+// //                             >
 // //                               {o.paymentStatus}
 // //                             </span>
 // //                           </td>
 // //                           <td className="p-3">
-// //                             <span className="font-semibold">{o.orderStatus}</span>
+// //                             <span className="font-semibold">
+// //                               {o.orderStatus}
+// //                             </span>
 // //                           </td>
 // //                         </tr>
 // //                       ))}
@@ -434,38 +1734,47 @@
 // //           )}
 
 // //           {/* 2. PRODUCTS MANAGEMENT */}
-// //           {activeTab === 'products' && (
+// //           {activeTab === "products" && (
 // //             <div className="space-y-6 max-w-6xl">
 // //               <div className="flex flex-wrap items-center justify-between gap-4">
 // //                 <div>
-// //                   <h2 className="text-2xl font-serif font-bold text-[#292522]">Saree Product Catalog Management</h2>
-// //                   <p className="text-xs text-[#766B61] mt-0.5">Manage Paithani, Kanjivaram, and designer sarees, SKU, color variants, and prices.</p>
+// //                   <h2 className="text-2xl font-serif font-bold text-[#292522]">
+// //                     Saree Product Catalog Management
+// //                   </h2>
+// //                   <p className="text-xs text-[#766B61] mt-0.5">
+// //                     Manage Paithani, Kanjivaram, and designer sarees, SKU, color
+// //                     variants, and prices.
+// //                   </p>
 // //                 </div>
 // //                 <button
 // //                   onClick={() => {
+// //                     setFormError("");
+// //                     setUploading(false);
 // //                     setEditingProduct({
-// //                       name: '',
-// //                       fabric: 'Pure Mulberry Silk',
-// //                       occasion: 'Festive & Weddings',
+// //                       name: "",
+// //                       fabric: "Pure Mulberry Silk",
+// //                       occasion: "Festive & Weddings",
 // //                       lengthMeters: 6.3,
-// //                       blousePiece: 'Running 0.8m unstitched silk piece included',
-// //                       careInstructions: 'Dry clean only',
-// //                       categoryNames: ['Silk Sarees'],
+// //                       blousePiece:
+// //                         "Running 0.8m unstitched silk piece included",
+// //                       careInstructions: "Dry clean only",
+// //                       categoryNames: ["Silk Sarees"],
 // //                       variants: [
 // //                         {
 // //                           variantId: `var-${Date.now()}-1`,
-// //                           colorName: 'Royal Purple & Gold',
-// //                           colorHex: '#4B0082',
-// //                           sku: 'KFS-SILK-' + Math.floor(100 + Math.random() * 900),
+// //                           colorName: "Royal Purple & Gold",
+// //                           colorHex: "#4B0082",
+// //                           sku:
+// //                             "KFS-SILK-" + Math.floor(100 + Math.random() * 900),
 // //                           originalPricePaise: 1699900,
 // //                           sellingPricePaise: 1299900,
 // //                           inventoryStock: 8,
 // //                           reservedStock: 0,
-// //                           images: [products[0]?.primaryImage || '']
-// //                         }
+// //                           images: [],
+// //                         },
 // //                       ],
 // //                       featured: true,
-// //                       isPublished: true
+// //                       isPublished: true,
 // //                     });
 // //                     setIsProductModalOpen(true);
 // //                   }}
@@ -479,14 +1788,31 @@
 // //               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 // //                 {products.map((p) => {
 // //                   const v = p.variants[0];
-// //                   const totalStock = p.variants.reduce((sum, item) => sum + (item.inventoryStock - item.reservedStock), 0);
+// //                   const totalStock = p.variants.reduce(
+// //                     (sum, item) =>
+// //                       sum + (item.inventoryStock - item.reservedStock),
+// //                     0,
+// //                   );
 // //                   return (
-// //                     <div key={p.id} className="bg-white rounded-xl border border-[#E6E0D8] overflow-hidden flex flex-col justify-between shadow-xs">
+// //                     <div
+// //                       key={p.id}
+// //                       className="bg-white rounded-xl border border-[#E6E0D8] overflow-hidden flex flex-col justify-between shadow-xs"
+// //                     >
 // //                       <div className="aspect-[4/3] bg-[#FAF7F0] relative overflow-hidden">
-// //                         <img src={p.primaryImage} alt={p.name} className="w-full h-full object-cover" />
+// //                         <img
+// //                           src={cld(
+// //                             p.primaryImage || p.variants[0]?.images?.[0],
+// //                             { w: 600, h: 450 },
+// //                           )}
+// //                           alt={p.name}
+// //                           loading="lazy"
+// //                           className="w-full h-full object-cover"
+// //                         />
 // //                         <div className="absolute top-2 right-2 flex gap-1">
 // //                           <button
 // //                             onClick={() => {
+// //                               setFormError("");
+// //                               setUploading(false);
 // //                               setEditingProduct(p);
 // //                               setIsProductModalOpen(true);
 // //                             }}
@@ -510,12 +1836,16 @@
 // //                           <span>{p.fabric}</span>
 // //                           <span>SKU: {p.sku}</span>
 // //                         </div>
-// //                         <h4 className="text-sm font-semibold font-serif text-[#292522] line-clamp-1">{p.name}</h4>
+// //                         <h4 className="text-sm font-semibold font-serif text-[#292522] line-clamp-1">
+// //                           {p.name}
+// //                         </h4>
 // //                         <div className="flex items-baseline justify-between pt-1 border-t border-[#E6E0D8]">
 // //                           <span className="text-base font-bold text-[#641D32] tabular-nums font-sans">
 // //                             {formatPriceINR(v?.sellingPricePaise || 0)}
 // //                           </span>
-// //                           <span className={`text-[11px] font-semibold ${totalStock <= 3 ? 'text-amber-700' : 'text-emerald-700'}`}>
+// //                           <span
+// //                             className={`text-[11px] font-semibold ${totalStock <= 3 ? "text-amber-700" : "text-emerald-700"}`}
+// //                           >
 // //                             Stock: {totalStock} units
 // //                           </span>
 // //                         </div>
@@ -528,11 +1858,16 @@
 // //           )}
 
 // //           {/* 3. ORDERS MANAGEMENT */}
-// //           {activeTab === 'orders' && (
+// //           {activeTab === "orders" && (
 // //             <div className="space-y-6 max-w-6xl">
 // //               <div>
-// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Order & Shipment Tracking Management</h2>
-// //                 <p className="text-xs text-[#766B61] mt-0.5">Control order status lifecycle, dispatch shipments via Blue Dart/Delhivery, and handle authorized refunds.</p>
+// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">
+// //                   Order & Shipment Tracking Management
+// //                 </h2>
+// //                 <p className="text-xs text-[#766B61] mt-0.5">
+// //                   Control order status lifecycle, dispatch shipments via Blue
+// //                   Dart/Delhivery, and handle authorized refunds.
+// //                 </p>
 // //               </div>
 
 // //               <div className="bg-white rounded-xl border border-[#E6E0D8] overflow-hidden shadow-xs">
@@ -551,26 +1886,51 @@
 // //                   <tbody className="divide-y divide-[#E6E0D8]">
 // //                     {orders.map((o) => (
 // //                       <tr key={o.id} className="hover:bg-[#FAF7F0]/60">
-// //                         <td className="p-3 font-mono font-bold text-[#641D32]">#{o.orderNumber}</td>
-// //                         <td className="p-3">
-// //                           <span className="font-semibold text-[#292522] block">{o.customerName}</span>
-// //                           <span className="text-[#766B61] text-[11px]">{o.customerPhone}</span>
+// //                         <td className="p-3 font-mono font-bold text-[#641D32]">
+// //                           #{o.orderNumber}
 // //                         </td>
-// //                         <td className="p-3 max-w-[200px] truncate">{o.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</td>
-// //                         <td className="p-3 font-bold tabular-nums font-sans">{formatPriceINR(o.finalPayablePaise)}</td>
+// //                         <td className="p-3">
+// //                           <span className="font-semibold text-[#292522] block">
+// //                             {o.customerName}
+// //                           </span>
+// //                           <span className="text-[#766B61] text-[11px]">
+// //                             {o.customerPhone}
+// //                           </span>
+// //                         </td>
+// //                         <td className="p-3 max-w-[200px] truncate">
+// //                           {o.items
+// //                             .map((i) => `${i.quantity}x ${i.name}`)
+// //                             .join(", ")}
+// //                         </td>
+// //                         <td className="p-3 font-bold tabular-nums font-sans">
+// //                           {formatPriceINR(o.finalPayablePaise)}
+// //                         </td>
 // //                         <td className="p-3">
 // //                           <select
 // //                             value={o.orderStatus}
-// //                             onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value as OrderStatus)}
+// //                             onChange={(e) =>
+// //                               handleUpdateOrderStatus(
+// //                                 o.id,
+// //                                 e.target.value as OrderStatus,
+// //                               )
+// //                             }
 // //                             className="text-xs p-1 bg-[#FAF7F0] border border-[#E6E0D8] rounded font-semibold text-[#292522]"
 // //                           >
-// //                             <option value="Pending Payment">Pending Payment</option>
-// //                             <option value="Payment Confirmed">Payment Confirmed</option>
-// //                             <option value="Order Confirmed">Order Confirmed</option>
+// //                             <option value="Pending Payment">
+// //                               Pending Payment
+// //                             </option>
+// //                             <option value="Payment Confirmed">
+// //                               Payment Confirmed
+// //                             </option>
+// //                             <option value="Order Confirmed">
+// //                               Order Confirmed
+// //                             </option>
 // //                             <option value="Processing">Processing</option>
 // //                             <option value="Packed">Packed</option>
 // //                             <option value="Shipped">Shipped</option>
-// //                             <option value="Out for Delivery">Out for Delivery</option>
+// //                             <option value="Out for Delivery">
+// //                               Out for Delivery
+// //                             </option>
 // //                             <option value="Delivered">Delivered</option>
 // //                             <option value="Cancelled">Cancelled</option>
 // //                             <option value="Refunded">Refunded</option>
@@ -579,13 +1939,16 @@
 // //                         <td className="p-3">
 // //                           {o.shipment?.trackingNumber ? (
 // //                             <span className="font-mono text-[11px] text-[#641D32] font-semibold">
-// //                               {o.shipment.courierName}: {o.shipment.trackingNumber}
+// //                               {o.shipment.courierName}:{" "}
+// //                               {o.shipment.trackingNumber}
 // //                             </span>
 // //                           ) : (
 // //                             <button
 // //                               onClick={() => {
 // //                                 setSelectedOrder(o);
-// //                                 setTrackingNumberInput(`BDKOL${Date.now().toString().slice(-6)}`);
+// //                                 setTrackingNumberInput(
+// //                                   `BDKOL${Date.now().toString().slice(-6)}`,
+// //                                 );
 // //                               }}
 // //                               className="text-[11px] text-[#641D32] hover:underline font-semibold"
 // //                             >
@@ -613,28 +1976,46 @@
 // //                   <div className="bg-white rounded-xl max-w-xl w-full p-6 shadow-2xl border border-[#E6E0D8] space-y-4 max-h-[90vh] overflow-y-auto">
 // //                     <div className="flex items-center justify-between pb-3 border-b border-[#E6E0D8]">
 // //                       <div>
-// //                         <span className="text-xs text-[#766B61]">Order Inspector</span>
-// //                         <h3 className="text-lg font-mono font-bold text-[#641D32]">#{selectedOrder.orderNumber}</h3>
+// //                         <span className="text-xs text-[#766B61]">
+// //                           Order Inspector
+// //                         </span>
+// //                         <h3 className="text-lg font-mono font-bold text-[#641D32]">
+// //                           #{selectedOrder.orderNumber}
+// //                         </h3>
 // //                       </div>
-// //                       <button onClick={() => setSelectedOrder(null)} className="p-1 text-[#766B61] hover:text-[#292522]">
+// //                       <button
+// //                         onClick={() => setSelectedOrder(null)}
+// //                         className="p-1 text-[#766B61] hover:text-[#292522]"
+// //                       >
 // //                         ✕
 // //                       </button>
 // //                     </div>
 
 // //                     <div className="space-y-3 text-xs">
 // //                       <div>
-// //                         <strong className="block text-[#292522] mb-1">Customer Delivery Address:</strong>
+// //                         <strong className="block text-[#292522] mb-1">
+// //                           Customer Delivery Address:
+// //                         </strong>
 // //                         <p className="text-[#766B61]">
-// //                           {selectedOrder.shippingAddressSnapshot.fullName}<br />
-// //                           {selectedOrder.shippingAddressSnapshot.addressLine1}<br />
-// //                           {selectedOrder.shippingAddressSnapshot.city}, {selectedOrder.shippingAddressSnapshot.state} - {selectedOrder.shippingAddressSnapshot.pinCode}<br />
-// //                           Phone: {selectedOrder.shippingAddressSnapshot.mobileNumber} · Email: {selectedOrder.customerEmail}
+// //                           {selectedOrder.shippingAddressSnapshot.fullName}
+// //                           <br />
+// //                           {selectedOrder.shippingAddressSnapshot.addressLine1}
+// //                           <br />
+// //                           {selectedOrder.shippingAddressSnapshot.city},{" "}
+// //                           {selectedOrder.shippingAddressSnapshot.state} -{" "}
+// //                           {selectedOrder.shippingAddressSnapshot.pinCode}
+// //                           <br />
+// //                           Phone:{" "}
+// //                           {selectedOrder.shippingAddressSnapshot.mobileNumber} ·
+// //                           Email: {selectedOrder.customerEmail}
 // //                         </p>
 // //                       </div>
 
 // //                       {/* Shipment Tracking assignment form */}
 // //                       <div className="p-3 bg-[#FAF7F0] border border-[#E6E0D8] rounded-md space-y-2">
-// //                         <strong className="block text-[#292522]">Shipment Tracking Assignment:</strong>
+// //                         <strong className="block text-[#292522]">
+// //                           Shipment Tracking Assignment:
+// //                         </strong>
 // //                         <div className="grid grid-cols-2 gap-2">
 // //                           <input
 // //                             type="text"
@@ -647,7 +2028,9 @@
 // //                             type="text"
 // //                             placeholder="Tracking Number"
 // //                             value={trackingNumberInput}
-// //                             onChange={(e) => setTrackingNumberInput(e.target.value)}
+// //                             onChange={(e) =>
+// //                               setTrackingNumberInput(e.target.value)
+// //                             }
 // //                             className="p-1.5 bg-white border border-[#E6E0D8] rounded text-xs font-mono"
 // //                           />
 // //                         </div>
@@ -660,17 +2043,26 @@
 // //                       </div>
 
 // //                       {/* Refund Trigger if order eligible */}
-// //                       {selectedOrder.paymentStatus === 'Paid' && selectedOrder.orderStatus !== 'Refunded' && (
-// //                         <div className="pt-2 border-t border-[#E6E0D8] flex items-center justify-between">
-// //                           <span className="text-[#766B61]">Need to cancel/refund?</span>
-// //                           <button
-// //                             onClick={() => handleProcessRefund(selectedOrder.id, selectedOrder.finalPayablePaise)}
-// //                             className="px-3 py-1 bg-red-700 hover:bg-red-800 text-white rounded font-medium text-xs"
-// //                           >
-// //                             Process Refund ({formatPriceINR(selectedOrder.finalPayablePaise)})
-// //                           </button>
-// //                         </div>
-// //                       )}
+// //                       {selectedOrder.paymentStatus === "Paid" &&
+// //                         selectedOrder.orderStatus !== "Refunded" && (
+// //                           <div className="pt-2 border-t border-[#E6E0D8] flex items-center justify-between">
+// //                             <span className="text-[#766B61]">
+// //                               Need to cancel/refund?
+// //                             </span>
+// //                             <button
+// //                               onClick={() =>
+// //                                 handleProcessRefund(
+// //                                   selectedOrder.id,
+// //                                   selectedOrder.finalPayablePaise,
+// //                                 )
+// //                               }
+// //                               className="px-3 py-1 bg-red-700 hover:bg-red-800 text-white rounded font-medium text-xs"
+// //                             >
+// //                               Process Refund (
+// //                               {formatPriceINR(selectedOrder.finalPayablePaise)})
+// //                             </button>
+// //                           </div>
+// //                         )}
 // //                     </div>
 // //                   </div>
 // //                 </div>
@@ -679,11 +2071,16 @@
 // //           )}
 
 // //           {/* 4. INVENTORY & STOCK */}
-// //           {activeTab === 'inventory' && (
+// //           {activeTab === "inventory" && (
 // //             <div className="space-y-6 max-w-6xl">
 // //               <div>
-// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Handloom Inventory Management</h2>
-// //                 <p className="text-xs text-[#766B61] mt-0.5">Real-time tracking of available stock, reserved stock, and physical stock adjustments.</p>
+// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">
+// //                   Handloom Inventory Management
+// //                 </h2>
+// //                 <p className="text-xs text-[#766B61] mt-0.5">
+// //                   Real-time tracking of available stock, reserved stock, and
+// //                   physical stock adjustments.
+// //                 </p>
 // //               </div>
 
 // //               <div className="bg-white rounded-xl border border-[#E6E0D8] overflow-hidden shadow-xs">
@@ -704,29 +2101,47 @@
 // //                       p.variants.map((v) => {
 // //                         const available = v.inventoryStock - v.reservedStock;
 // //                         return (
-// //                           <tr key={v.variantId} className="hover:bg-[#FAF7F0]/60">
-// //                             <td className="p-3 font-medium text-[#292522]">{p.name}</td>
+// //                           <tr
+// //                             key={v.variantId}
+// //                             className="hover:bg-[#FAF7F0]/60"
+// //                           >
+// //                             <td className="p-3 font-medium text-[#292522]">
+// //                               {p.name}
+// //                             </td>
 // //                             <td className="p-3 flex items-center gap-1.5">
-// //                               <span className="w-3 h-3 rounded-full border" style={{ backgroundColor: v.colorHex }} />
+// //                               <span
+// //                                 className="w-3 h-3 rounded-full border"
+// //                                 style={{ backgroundColor: v.colorHex }}
+// //                               />
 // //                               <span>{v.colorName}</span>
 // //                             </td>
-// //                             <td className="p-3 font-mono text-[11px] text-[#766B61]">{v.sku}</td>
-// //                             <td className="p-3 font-bold tabular-nums">{v.inventoryStock}</td>
-// //                             <td className="p-3 tabular-nums text-amber-800">{v.reservedStock}</td>
+// //                             <td className="p-3 font-mono text-[11px] text-[#766B61]">
+// //                               {v.sku}
+// //                             </td>
+// //                             <td className="p-3 font-bold tabular-nums">
+// //                               {v.inventoryStock}
+// //                             </td>
+// //                             <td className="p-3 tabular-nums text-amber-800">
+// //                               {v.reservedStock}
+// //                             </td>
 // //                             <td className="p-3">
-// //                               <span className={`font-bold tabular-nums ${available <= 3 ? 'text-amber-700' : 'text-emerald-700'}`}>
+// //                               <span
+// //                                 className={`font-bold tabular-nums ${available <= 3 ? "text-amber-700" : "text-emerald-700"}`}
+// //                               >
 // //                                 {available} units
 // //                               </span>
 // //                             </td>
 // //                             <td className="p-3 text-right">
 // //                               <button
-// //                                 onClick={() => setStockAdjustItem({
-// //                                   productId: p.id,
-// //                                   variantId: v.variantId,
-// //                                   productName: p.name,
-// //                                   colorName: v.colorName,
-// //                                   currentStock: v.inventoryStock
-// //                                 })}
+// //                                 onClick={() =>
+// //                                   setStockAdjustItem({
+// //                                     productId: p.id,
+// //                                     variantId: v.variantId,
+// //                                     productName: p.name,
+// //                                     colorName: v.colorName,
+// //                                     currentStock: v.inventoryStock,
+// //                                   })
+// //                                 }
 // //                                 className="px-2.5 py-1 bg-[#FAF7F0] hover:bg-white text-[#641D32] border border-[#E6E0D8] rounded font-semibold text-[11px]"
 // //                               >
 // //                                 Adjust Stock
@@ -734,7 +2149,7 @@
 // //                             </td>
 // //                           </tr>
 // //                         );
-// //                       })
+// //                       }),
 // //                     )}
 // //                   </tbody>
 // //                 </table>
@@ -742,19 +2157,34 @@
 
 // //               {/* Movement Logs */}
 // //               <div className="bg-white rounded-xl border border-[#E6E0D8] p-6 shadow-xs space-y-3">
-// //                 <h3 className="text-sm font-serif font-bold text-[#292522]">Stock Movement History</h3>
+// //                 <h3 className="text-sm font-serif font-bold text-[#292522]">
+// //                   Stock Movement History
+// //                 </h3>
 // //                 <div className="space-y-2 max-h-60 overflow-y-auto">
 // //                   {movements.slice(0, 15).map((m) => (
-// //                     <div key={m.id} className="flex items-center justify-between p-2 rounded bg-[#FAF7F0] text-xs">
+// //                     <div
+// //                       key={m.id}
+// //                       className="flex items-center justify-between p-2 rounded bg-[#FAF7F0] text-xs"
+// //                     >
 // //                       <div>
-// //                         <span className="font-semibold text-[#292522]">{m.productName} ({m.colorName})</span>
-// //                         <span className="text-[#766B61] text-[11px] block">{m.reason} · {formatDate(m.timestamp)}</span>
+// //                         <span className="font-semibold text-[#292522]">
+// //                           {m.productName} ({m.colorName})
+// //                         </span>
+// //                         <span className="text-[#766B61] text-[11px] block">
+// //                           {m.reason} · {formatDate(m.timestamp)}
+// //                         </span>
 // //                       </div>
 // //                       <div className="text-right">
-// //                         <span className={`font-bold tabular-nums ${m.quantityChange > 0 ? 'text-emerald-700' : 'text-red-700'}`}>
-// //                           {m.quantityChange > 0 ? `+${m.quantityChange}` : m.quantityChange}
+// //                         <span
+// //                           className={`font-bold tabular-nums ${m.quantityChange > 0 ? "text-emerald-700" : "text-red-700"}`}
+// //                         >
+// //                           {m.quantityChange > 0
+// //                             ? `+${m.quantityChange}`
+// //                             : m.quantityChange}
 // //                         </span>
-// //                         <span className="text-[11px] text-[#766B61] block">Stock: {m.stockAfter}</span>
+// //                         <span className="text-[11px] text-[#766B61] block">
+// //                           Stock: {m.stockAfter}
+// //                         </span>
 // //                       </div>
 // //                     </div>
 // //                   ))}
@@ -764,20 +2194,35 @@
 // //           )}
 
 // //           {/* 5. CATEGORIES & BANNERS */}
-// //           {activeTab === 'categories' && (
+// //           {activeTab === "categories" && (
 // //             <div className="space-y-6 max-w-6xl">
 // //               <div>
-// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Circular Saree Category Manager</h2>
-// //                 <p className="text-xs text-[#766B61] mt-0.5">Control categories displayed on the customer homepage.</p>
+// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">
+// //                   Circular Saree Category Manager
+// //                 </h2>
+// //                 <p className="text-xs text-[#766B61] mt-0.5">
+// //                   Control categories displayed on the customer homepage.
+// //                 </p>
 // //               </div>
 
 // //               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 // //                 {categories.map((c) => (
-// //                   <div key={c.id} className="bg-white rounded-xl border border-[#E6E0D8] p-4 flex items-center gap-3 shadow-xs">
-// //                     <img src={c.imageUrl} alt={c.name} className="w-14 h-14 rounded-full object-cover border" />
+// //                   <div
+// //                     key={c.id}
+// //                     className="bg-white rounded-xl border border-[#E6E0D8] p-4 flex items-center gap-3 shadow-xs"
+// //                   >
+// //                     <img
+// //                       src={c.imageUrl}
+// //                       alt={c.name}
+// //                       className="w-14 h-14 rounded-full object-cover border"
+// //                     />
 // //                     <div className="flex-1">
-// //                       <h4 className="text-xs font-bold text-[#292522] font-serif">{c.name}</h4>
-// //                       <span className="text-[11px] text-emerald-700 font-semibold">Active Category</span>
+// //                       <h4 className="text-xs font-bold text-[#292522] font-serif">
+// //                         {c.name}
+// //                       </h4>
+// //                       <span className="text-[11px] text-emerald-700 font-semibold">
+// //                         Active Category
+// //                       </span>
 // //                     </div>
 // //                   </div>
 // //                 ))}
@@ -786,20 +2231,35 @@
 // //           )}
 
 // //           {/* 6. HERO BANNERS */}
-// //           {activeTab === 'banners' && (
+// //           {activeTab === "banners" && (
 // //             <div className="space-y-6 max-w-6xl">
 // //               <div>
-// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Promotional Hero Carousel Banners</h2>
-// //                 <p className="text-xs text-[#766B61] mt-0.5">Manage banners rotating on the storefront homepage.</p>
+// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">
+// //                   Promotional Hero Carousel Banners
+// //                 </h2>
+// //                 <p className="text-xs text-[#766B61] mt-0.5">
+// //                   Manage banners rotating on the storefront homepage.
+// //                 </p>
 // //               </div>
 
 // //               <div className="space-y-4">
 // //                 {banners.map((b) => (
-// //                   <div key={b.id} className="bg-white rounded-xl border border-[#E6E0D8] p-4 flex gap-4 items-center shadow-xs">
-// //                     <img src={b.imageUrl} alt={b.heading} className="w-32 h-20 rounded-lg object-cover" />
+// //                   <div
+// //                     key={b.id}
+// //                     className="bg-white rounded-xl border border-[#E6E0D8] p-4 flex gap-4 items-center shadow-xs"
+// //                   >
+// //                     <img
+// //                       src={b.imageUrl}
+// //                       alt={b.heading}
+// //                       className="w-32 h-20 rounded-lg object-cover"
+// //                     />
 // //                     <div className="flex-1 space-y-1">
-// //                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#C7A66A]">{b.badgeText}</span>
-// //                       <h4 className="text-sm font-bold font-serif text-[#292522]">{b.heading}</h4>
+// //                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#C7A66A]">
+// //                         {b.badgeText}
+// //                       </span>
+// //                       <h4 className="text-sm font-bold font-serif text-[#292522]">
+// //                         {b.heading}
+// //                       </h4>
 // //                       <p className="text-xs text-[#766B61]">{b.subtitle}</p>
 // //                     </div>
 // //                   </div>
@@ -809,17 +2269,27 @@
 // //           )}
 
 // //           {/* 7. COUPONS */}
-// //           {activeTab === 'coupons' && (
+// //           {activeTab === "coupons" && (
 // //             <div className="space-y-6 max-w-6xl">
 // //               <div>
-// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Discount Coupons & Offers</h2>
-// //                 <p className="text-xs text-[#766B61] mt-0.5">Create coupon codes (e.g. FESTIVE10, KOLHAPUR20) with minimum order values.</p>
+// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">
+// //                   Discount Coupons & Offers
+// //                 </h2>
+// //                 <p className="text-xs text-[#766B61] mt-0.5">
+// //                   Create coupon codes (e.g. FESTIVE10, KOLHAPUR20) with minimum
+// //                   order values.
+// //                 </p>
 // //               </div>
 
 // //               {/* Add Coupon Form */}
-// //               <form onSubmit={handleAddCoupon} className="bg-white p-5 rounded-xl border border-[#E6E0D8] flex flex-wrap gap-4 items-end shadow-xs text-xs">
+// //               <form
+// //                 onSubmit={handleAddCoupon}
+// //                 className="bg-white p-5 rounded-xl border border-[#E6E0D8] flex flex-wrap gap-4 items-end shadow-xs text-xs"
+// //               >
 // //                 <div>
-// //                   <label className="font-semibold text-[#292522] block mb-1">Coupon Code</label>
+// //                   <label className="font-semibold text-[#292522] block mb-1">
+// //                     Coupon Code
+// //                   </label>
 // //                   <input
 // //                     type="text"
 // //                     placeholder="e.g. SPECIAL20"
@@ -829,22 +2299,30 @@
 // //                   />
 // //                 </div>
 // //                 <div>
-// //                   <label className="font-semibold text-[#292522] block mb-1">Discount %</label>
+// //                   <label className="font-semibold text-[#292522] block mb-1">
+// //                     Discount %
+// //                   </label>
 // //                   <input
 // //                     type="number"
 // //                     min="1"
 // //                     max="50"
 // //                     value={newCouponDiscount}
-// //                     onChange={(e) => setNewCouponDiscount(Number(e.target.value))}
+// //                     onChange={(e) =>
+// //                       setNewCouponDiscount(Number(e.target.value))
+// //                     }
 // //                     className="p-2 border border-[#E6E0D8] rounded bg-[#FAF7F0] w-24"
 // //                   />
 // //                 </div>
 // //                 <div>
-// //                   <label className="font-semibold text-[#292522] block mb-1">Min Order (₹)</label>
+// //                   <label className="font-semibold text-[#292522] block mb-1">
+// //                     Min Order (₹)
+// //                   </label>
 // //                   <input
 // //                     type="number"
 // //                     value={newCouponMinOrder}
-// //                     onChange={(e) => setNewCouponMinOrder(Number(e.target.value))}
+// //                     onChange={(e) =>
+// //                       setNewCouponMinOrder(Number(e.target.value))
+// //                     }
 // //                     className="p-2 border border-[#E6E0D8] rounded bg-[#FAF7F0] w-28"
 // //                   />
 // //                 </div>
@@ -859,7 +2337,10 @@
 // //               {/* Coupons list */}
 // //               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 // //                 {coupons.map((cp) => (
-// //                   <div key={cp.id} className="bg-white p-5 rounded-xl border border-[#E6E0D8] space-y-2 shadow-xs">
+// //                   <div
+// //                     key={cp.id}
+// //                     className="bg-white p-5 rounded-xl border border-[#E6E0D8] space-y-2 shadow-xs"
+// //                   >
 // //                     <div className="flex justify-between items-start">
 // //                       <span className="font-mono font-bold text-base text-[#641D32] bg-[#FAF7F0] px-2 py-0.5 rounded border border-[#E6E0D8]">
 // //                         {cp.code}
@@ -870,7 +2351,11 @@
 // //                     </div>
 // //                     <p className="text-xs text-[#766B61]">{cp.description}</p>
 // //                     <div className="text-[11px] text-[#766B61] pt-2 border-t border-[#E6E0D8]">
-// //                       Min Order: ₹{Math.round(cp.minOrderValuePaise / 100).toLocaleString('en-IN')} · Redemptions: {cp.usedCount}
+// //                       Min Order: ₹
+// //                       {Math.round(cp.minOrderValuePaise / 100).toLocaleString(
+// //                         "en-IN",
+// //                       )}{" "}
+// //                       · Redemptions: {cp.usedCount}
 // //                     </div>
 // //                   </div>
 // //                 ))}
@@ -879,19 +2364,29 @@
 // //           )}
 
 // //           {/* 8. SETTINGS */}
-// //           {activeTab === 'settings' && (
+// //           {activeTab === "settings" && (
 // //             <div className="space-y-6 max-w-4xl">
 // //               <div>
-// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Store Configuration & Policies</h2>
-// //                 <p className="text-xs text-[#766B61] mt-0.5">Control announcement banner messages, business address, and shipping fees.</p>
+// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">
+// //                   Store Configuration & Policies
+// //                 </h2>
+// //                 <p className="text-xs text-[#766B61] mt-0.5">
+// //                   Control announcement banner messages, business address, and
+// //                   shipping fees.
+// //                 </p>
 // //               </div>
 
 // //               {/* Rotating Announcement Bar Manager */}
 // //               <div className="bg-white p-6 rounded-xl border border-[#E6E0D8] space-y-4 shadow-xs">
-// //                 <h3 className="text-sm font-serif font-bold text-[#292522]">Homepage Announcement Bar Messages</h3>
+// //                 <h3 className="text-sm font-serif font-bold text-[#292522]">
+// //                   Homepage Announcement Bar Messages
+// //                 </h3>
 // //                 <div className="space-y-2">
 // //                   {settings.announcementMessages.map((msg, idx) => (
-// //                     <div key={idx} className="flex items-center justify-between p-2.5 bg-[#FAF7F0] rounded border border-[#E6E0D8] text-xs">
+// //                     <div
+// //                       key={idx}
+// //                       className="flex items-center justify-between p-2.5 bg-[#FAF7F0] rounded border border-[#E6E0D8] text-xs"
+// //                     >
 // //                       <span>{msg}</span>
 // //                       <button
 // //                         onClick={() => handleRemoveAnnouncement(idx)}
@@ -922,32 +2417,58 @@
 
 // //               {/* Business Contact & Shipping */}
 // //               <div className="bg-white p-6 rounded-xl border border-[#E6E0D8] space-y-4 shadow-xs text-xs">
-// //                 <h3 className="text-sm font-serif font-bold text-[#292522]">Brand & Shipping Rules</h3>
+// //                 <h3 className="text-sm font-serif font-bold text-[#292522]">
+// //                   Brand & Shipping Rules
+// //                 </h3>
 // //                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 // //                   <div>
-// //                     <label className="font-semibold block mb-1">Business Phone & WhatsApp</label>
+// //                     <label className="font-semibold block mb-1">
+// //                       Business Phone & WhatsApp
+// //                     </label>
 // //                     <input
 // //                       type="text"
 // //                       value={settings.businessPhone}
-// //                       onChange={(e) => storeService.updateSettings({ businessPhone: e.target.value, whatsappContact: e.target.value }, 'Owner')}
+// //                       onChange={(e) =>
+// //                         storeService.updateSettings(
+// //                           {
+// //                             businessPhone: e.target.value,
+// //                             whatsappContact: e.target.value,
+// //                           },
+// //                           "Owner",
+// //                         )
+// //                       }
 // //                       className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
 // //                     />
 // //                   </div>
 // //                   <div>
-// //                     <label className="font-semibold block mb-1">Instagram Handle</label>
+// //                     <label className="font-semibold block mb-1">
+// //                       Instagram Handle
+// //                     </label>
 // //                     <input
 // //                       type="text"
 // //                       value={settings.instagramHandle}
-// //                       onChange={(e) => storeService.updateSettings({ instagramHandle: e.target.value }, 'Owner')}
+// //                       onChange={(e) =>
+// //                         storeService.updateSettings(
+// //                           { instagramHandle: e.target.value },
+// //                           "Owner",
+// //                         )
+// //                       }
 // //                       className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
 // //                     />
 // //                   </div>
 // //                   <div className="sm:col-span-2">
-// //                     <label className="font-semibold block mb-1">Physical Boutique Address</label>
+// //                     <label className="font-semibold block mb-1">
+// //                       Physical Boutique Address
+// //                     </label>
 // //                     <input
 // //                       type="text"
 // //                       value={settings.businessAddress}
-// //                       onChange={(e) => storeService.updateSettings({ businessAddress: e.target.value }, 'Owner')}
+// //                       onChange={(e) =>
+// //                         storeService.updateSettings(
+// //                           { businessAddress: e.target.value },
+// //                           "Owner",
+// //                         )
+// //                       }
 // //                       className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
 // //                     />
 // //                   </div>
@@ -957,22 +2478,32 @@
 // //           )}
 
 // //           {/* 9. AUDIT LOGS */}
-// //           {activeTab === 'audit' && (
+// //           {activeTab === "audit" && (
 // //             <div className="space-y-6 max-w-6xl">
 // //               <div>
-// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">Security & Action Audit Logs</h2>
-// //                 <p className="text-xs text-[#766B61] mt-0.5">Chronological record of every administrative action, stock mutation, and order transition.</p>
+// //                 <h2 className="text-2xl font-serif font-bold text-[#292522]">
+// //                   Security & Action Audit Logs
+// //                 </h2>
+// //                 <p className="text-xs text-[#766B61] mt-0.5">
+// //                   Chronological record of every administrative action, stock
+// //                   mutation, and order transition.
+// //                 </p>
 // //               </div>
 
 // //               <div className="bg-white rounded-xl border border-[#E6E0D8] p-5 shadow-xs">
 // //                 <div className="space-y-3 max-h-[600px] overflow-y-auto">
 // //                   {auditLogs.map((log) => (
-// //                     <div key={log.id} className="p-3 bg-[#FAF7F0] rounded border border-[#E6E0D8] text-xs flex items-start justify-between">
+// //                     <div
+// //                       key={log.id}
+// //                       className="p-3 bg-[#FAF7F0] rounded border border-[#E6E0D8] text-xs flex items-start justify-between"
+// //                     >
 // //                       <div>
 // //                         <span className="font-semibold text-[#641D32] uppercase tracking-wider text-[10px]">
 // //                           [{log.entityType}]
 // //                         </span>
-// //                         <p className="font-medium text-[#292522] mt-0.5">{log.details}</p>
+// //                         <p className="font-medium text-[#292522] mt-0.5">
+// //                           {log.details}
+// //                         </p>
 // //                         <span className="text-[#766B61] text-[11px] block mt-0.5">
 // //                           By: {log.performedBy}
 // //                         </span>
@@ -986,21 +2517,28 @@
 // //               </div>
 // //             </div>
 // //           )}
-
 // //         </main>
 // //       </div>
 
 // //       {/* Stock Adjustment Dialog */}
 // //       {stockAdjustItem && (
 // //         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-// //           <form onSubmit={handlePerformStockAdjustment} className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-[#E6E0D8] space-y-4 text-xs">
+// //           <form
+// //             onSubmit={handlePerformStockAdjustment}
+// //             className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-[#E6E0D8] space-y-4 text-xs"
+// //           >
 // //             <h3 className="text-base font-serif font-bold text-[#292522]">
 // //               Adjust Handloom Stock: {stockAdjustItem.productName}
 // //             </h3>
-// //             <p className="text-[#766B61]">Color: {stockAdjustItem.colorName} · Current on-hand: {stockAdjustItem.currentStock} units</p>
+// //             <p className="text-[#766B61]">
+// //               Color: {stockAdjustItem.colorName} · Current on-hand:{" "}
+// //               {stockAdjustItem.currentStock} units
+// //             </p>
 
 // //             <div>
-// //               <label className="font-semibold block mb-1">Quantity Change (+ to add, - to subtract)</label>
+// //               <label className="font-semibold block mb-1">
+// //                 Quantity Change (+ to add, - to subtract)
+// //               </label>
 // //               <input
 // //                 type="number"
 // //                 value={adjustmentAmount}
@@ -1010,7 +2548,9 @@
 // //             </div>
 
 // //             <div>
-// //               <label className="font-semibold block mb-1">Reason for Adjustment</label>
+// //               <label className="font-semibold block mb-1">
+// //                 Reason for Adjustment
+// //               </label>
 // //               <input
 // //                 type="text"
 // //                 value={adjustmentReason}
@@ -1041,12 +2581,23 @@
 // //       {/* Add / Edit Saree Modal */}
 // //       {isProductModalOpen && editingProduct && (
 // //         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-// //           <form onSubmit={handleSaveProduct} className="bg-white rounded-xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-[#E6E0D8] space-y-4 max-h-[90vh] overflow-y-auto text-xs">
+// //           <form
+// //             onSubmit={handleSaveProduct}
+// //             className="bg-white rounded-xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl border border-[#E6E0D8] space-y-4 max-h-[90vh] overflow-y-auto text-xs"
+// //           >
 // //             <div className="flex items-center justify-between pb-3 border-b border-[#E6E0D8]">
 // //               <h3 className="text-base font-serif font-bold text-[#292522]">
-// //                 {editingProduct.id ? 'Edit Saree Specifications' : 'Add New Saree to Catalog'}
+// //                 {editingProduct.id
+// //                   ? "Edit Saree Specifications"
+// //                   : "Add New Saree to Catalog"}
 // //               </h3>
-// //               <button type="button" onClick={() => setIsProductModalOpen(false)} className="text-[#766B61]">✕</button>
+// //               <button
+// //                 type="button"
+// //                 onClick={closeProductModal}
+// //                 className="text-[#766B61]"
+// //               >
+// //                 ✕
+// //               </button>
 // //             </div>
 
 // //             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1055,8 +2606,13 @@
 // //                 <input
 // //                   type="text"
 // //                   required
-// //                   value={editingProduct.name || ''}
-// //                   onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+// //                   value={editingProduct.name || ""}
+// //                   onChange={(e) => {
+// //                     const name = e.target.value;
+// //                     setEditingProduct((prev) =>
+// //                       prev ? { ...prev, name } : prev,
+// //                     );
+// //                   }}
 // //                   placeholder="e.g. Royal Kolhapuri Paithani Pure Silk Saree"
 // //                   className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
 // //                 />
@@ -1066,8 +2622,13 @@
 // //                 <label className="font-semibold block mb-1">Fabric</label>
 // //                 <input
 // //                   type="text"
-// //                   value={editingProduct.fabric || ''}
-// //                   onChange={(e) => setEditingProduct({ ...editingProduct, fabric: e.target.value })}
+// //                   value={editingProduct.fabric || ""}
+// //                   onChange={(e) => {
+// //                     const fabric = e.target.value;
+// //                     setEditingProduct((prev) =>
+// //                       prev ? { ...prev, fabric } : prev,
+// //                     );
+// //                   }}
 // //                   className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
 // //                 />
 // //               </div>
@@ -1076,66 +2637,72 @@
 // //                 <label className="font-semibold block mb-1">Occasion</label>
 // //                 <input
 // //                   type="text"
-// //                   value={editingProduct.occasion || ''}
-// //                   onChange={(e) => setEditingProduct({ ...editingProduct, occasion: e.target.value })}
-// //                   className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
-// //                 />
-// //               </div>
-
-// //               <div>
-// //                 <label className="font-semibold block mb-1">Original Price (₹)</label>
-// //                 <input
-// //                   type="number"
-// //                   value={editingProduct.variants?.[0] ? Math.round(editingProduct.variants[0].originalPricePaise / 100) : 15999}
+// //                   value={editingProduct.occasion || ""}
 // //                   onChange={(e) => {
-// //                     const price = Number(e.target.value) * 100;
-// //                     const variants = [...(editingProduct.variants || [])];
-// //                     if (variants[0]) variants[0].originalPricePaise = price;
-// //                     setEditingProduct({ ...editingProduct, variants });
+// //                     const occasion = e.target.value;
+// //                     setEditingProduct((prev) =>
+// //                       prev ? { ...prev, occasion } : prev,
+// //                     );
 // //                   }}
 // //                   className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
 // //                 />
 // //               </div>
 
-// //               <div>
-// //                 <label className="font-semibold block mb-1">Discounted Selling Price (₹)</label>
-// //                 <input
-// //                   type="number"
-// //                   value={editingProduct.variants?.[0] ? Math.round(editingProduct.variants[0].sellingPricePaise / 100) : 12999}
-// //                   onChange={(e) => {
-// //                     const price = Number(e.target.value) * 100;
-// //                     const variants = [...(editingProduct.variants || [])];
-// //                     if (variants[0]) variants[0].sellingPricePaise = price;
-// //                     setEditingProduct({ ...editingProduct, variants });
-// //                   }}
-// //                   className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+// //               {/* Colours: price, stock and 2 to 4 angle photos for each colour */}
+// //               <div className="sm:col-span-2 space-y-2">
+// //                 <label className="font-semibold block">
+// //                   Colours, prices & photos
+// //                 </label>
+// //                 <ProductVariantsEditor
+// //                   value={editingProduct.variants ?? []}
+// //                   onChange={(variants) =>
+// //                     setEditingProduct((prev) =>
+// //                       prev ? { ...prev, variants } : prev,
+// //                     )
+// //                   }
+// //                   onUploadingChange={setUploading}
+// //                   allowStockEdit={!editingProduct.id}
 // //                 />
 // //               </div>
 
 // //               <div className="sm:col-span-2">
-// //                 <label className="font-semibold block mb-1">Detailed Weaving Description</label>
+// //                 <label className="font-semibold block mb-1">
+// //                   Detailed Weaving Description
+// //                 </label>
 // //                 <textarea
 // //                   rows={3}
-// //                   value={editingProduct.description || ''}
-// //                   onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+// //                   value={editingProduct.description || ""}
+// //                   onChange={(e) => {
+// //                     const description = e.target.value;
+// //                     setEditingProduct((prev) =>
+// //                       prev ? { ...prev, description } : prev,
+// //                     );
+// //                   }}
 // //                   className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
 // //                 />
 // //               </div>
 // //             </div>
 
+// //             {formError && (
+// //               <p className="rounded border border-amber-200 bg-amber-50 p-2 text-amber-800">
+// //                 {formError}
+// //               </p>
+// //             )}
+
 // //             <div className="flex gap-2 pt-4 border-t border-[#E6E0D8]">
 // //               <button
 // //                 type="button"
-// //                 onClick={() => setIsProductModalOpen(false)}
+// //                 onClick={closeProductModal}
 // //                 className="flex-1 py-2 border border-[#E6E0D8] rounded font-medium hover:bg-[#FAF7F0]"
 // //               >
 // //                 Cancel
 // //               </button>
 // //               <button
 // //                 type="submit"
-// //                 className="flex-1 py-2 bg-[#641D32] hover:bg-[#4A1223] text-white font-semibold rounded"
+// //                 disabled={uploading}
+// //                 className="flex-1 py-2 bg-[#641D32] hover:bg-[#4A1223] text-white font-semibold rounded disabled:opacity-50"
 // //               >
-// //                 Save Saree
+// //                 {uploading ? "Uploading photos…" : "Save Saree"}
 // //               </button>
 // //             </div>
 // //           </form>
@@ -1144,8 +2711,6 @@
 // //     </div>
 // //   );
 // // };
-
-// //=====================
 // import React, { useState, useEffect } from "react";
 // import {
 //   LayoutDashboard,
@@ -1186,6 +2751,7 @@
 // import ProductVariantsEditor, {
 //   validateVariants,
 // } from "./ProductVariantsEditor.tsx";
+// import { OrdersPanel } from "../AdminPortal/Orderspanel .tsx";
 
 // interface AdminPortalProps {
 //   onExitToStore: () => void;
@@ -1870,105 +3436,17 @@
 //                 </p>
 //               </div>
 
-//               <div className="bg-white rounded-xl border border-[#E6E0D8] overflow-hidden shadow-xs">
-//                 <table className="w-full text-xs text-left">
-//                   <thead className="bg-[#FAF7F0] text-[#766B61] font-semibold border-b border-[#E6E0D8]">
-//                     <tr>
-//                       <th className="p-3">Order Number</th>
-//                       <th className="p-3">Customer</th>
-//                       <th className="p-3">Items</th>
-//                       <th className="p-3">Amount</th>
-//                       <th className="p-3">Status</th>
-//                       <th className="p-3">Shipment</th>
-//                       <th className="p-3 text-right">Actions</th>
-//                     </tr>
-//                   </thead>
-//                   <tbody className="divide-y divide-[#E6E0D8]">
-//                     {orders.map((o) => (
-//                       <tr key={o.id} className="hover:bg-[#FAF7F0]/60">
-//                         <td className="p-3 font-mono font-bold text-[#641D32]">
-//                           #{o.orderNumber}
-//                         </td>
-//                         <td className="p-3">
-//                           <span className="font-semibold text-[#292522] block">
-//                             {o.customerName}
-//                           </span>
-//                           <span className="text-[#766B61] text-[11px]">
-//                             {o.customerPhone}
-//                           </span>
-//                         </td>
-//                         <td className="p-3 max-w-[200px] truncate">
-//                           {o.items
-//                             .map((i) => `${i.quantity}x ${i.name}`)
-//                             .join(", ")}
-//                         </td>
-//                         <td className="p-3 font-bold tabular-nums font-sans">
-//                           {formatPriceINR(o.finalPayablePaise)}
-//                         </td>
-//                         <td className="p-3">
-//                           <select
-//                             value={o.orderStatus}
-//                             onChange={(e) =>
-//                               handleUpdateOrderStatus(
-//                                 o.id,
-//                                 e.target.value as OrderStatus,
-//                               )
-//                             }
-//                             className="text-xs p-1 bg-[#FAF7F0] border border-[#E6E0D8] rounded font-semibold text-[#292522]"
-//                           >
-//                             <option value="Pending Payment">
-//                               Pending Payment
-//                             </option>
-//                             <option value="Payment Confirmed">
-//                               Payment Confirmed
-//                             </option>
-//                             <option value="Order Confirmed">
-//                               Order Confirmed
-//                             </option>
-//                             <option value="Processing">Processing</option>
-//                             <option value="Packed">Packed</option>
-//                             <option value="Shipped">Shipped</option>
-//                             <option value="Out for Delivery">
-//                               Out for Delivery
-//                             </option>
-//                             <option value="Delivered">Delivered</option>
-//                             <option value="Cancelled">Cancelled</option>
-//                             <option value="Refunded">Refunded</option>
-//                           </select>
-//                         </td>
-//                         <td className="p-3">
-//                           {o.shipment?.trackingNumber ? (
-//                             <span className="font-mono text-[11px] text-[#641D32] font-semibold">
-//                               {o.shipment.courierName}:{" "}
-//                               {o.shipment.trackingNumber}
-//                             </span>
-//                           ) : (
-//                             <button
-//                               onClick={() => {
-//                                 setSelectedOrder(o);
-//                                 setTrackingNumberInput(
-//                                   `BDKOL${Date.now().toString().slice(-6)}`,
-//                                 );
-//                               }}
-//                               className="text-[11px] text-[#641D32] hover:underline font-semibold"
-//                             >
-//                               + Assign Courier
-//                             </button>
-//                           )}
-//                         </td>
-//                         <td className="p-3 text-right">
-//                           <button
-//                             onClick={() => setSelectedOrder(o)}
-//                             className="px-2.5 py-1 bg-[#FAF7F0] hover:bg-white text-[#292522] border border-[#E6E0D8] rounded font-medium text-[11px]"
-//                           >
-//                             Manage
-//                           </button>
-//                         </td>
-//                       </tr>
-//                     ))}
-//                   </tbody>
-//                 </table>
-//               </div>
+//               <OrdersPanel
+//                 orders={orders}
+//                 onStatusChange={handleUpdateOrderStatus}
+//                 onManage={(o: Order) => setSelectedOrder(o)}
+//                 onAssignCourier={(o: Order) => {
+//                   setSelectedOrder(o);
+//                   setTrackingNumberInput(
+//                     `BDKOL${Date.now().toString().slice(-6)}`,
+//                   );
+//                 }}
+//               />
 
 //               {/* Order Detail Side Drawer / Modal */}
 //               {selectedOrder && (
@@ -2711,57 +4189,85 @@
 //     </div>
 //   );
 // };
-import React, { useState, useEffect } from 'react';
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Layers, 
-  Image, 
-  Tag, 
-  Settings, 
-  FileText, 
-  ShieldCheck, 
-  LogOut, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Truck, 
-  AlertTriangle, 
-  ArrowLeft, 
-  CheckCircle, 
-  RefreshCw,
-  Search,
-  ExternalLink
-} from 'lucide-react';
-import { 
-  SareeProduct, 
-  CategoryItem, 
-  PromotionalBanner, 
-  Coupon, 
-  Order, 
-  OrderStatus, 
-  InventoryMovement, 
-  StoreSettings, 
-  AuditLogItem 
-} from '../../types/index.ts';
-import { storeService } from '../../services/storeService.ts';
-import { formatPriceINR, formatDate } from '../../utils/formatters.ts';
-import { cld } from '../../lib/cloudinaryUrl.ts';
-import ProductVariantsEditor, { validateVariants } from './ProductVariantsEditor.tsx';
-import { OrdersPanel } from '../AdminPortal/Orderspanel .tsx';
+import React, { useState, useEffect } from "react";
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Layers,
+  Image,
+  Tag,
+  Settings,
+  FileText,
+  LogOut,
+  Plus,
+  Edit2,
+  Trash2,
+  ArrowLeft,
+  Share2,
+  AlertTriangle,
+} from "lucide-react";
+import {
+  SareeProduct,
+  CategoryItem,
+  PromotionalBanner,
+  Coupon,
+  Order,
+  OrderStatus,
+  InventoryMovement,
+  StoreSettings,
+  AuditLogItem,
+} from "../../types/index.ts";
+import { storeService } from "../../services/storeService.ts";
+import { formatPriceINR, formatDate } from "../../utils/formatters.ts";
+import { cld } from "../../lib/cloudinaryUrl.ts";
+import { shareProduct } from "../../utils/shareProduct.ts";
+import ProductVariantsEditor, {
+  validateVariants,
+} from "./ProductVariantsEditor.tsx";
+import ImageUploadField from "./ImageUploadField.tsx";
+// IMPORTANT: rename "Orderspanel .tsx" (it has a space) to "OrdersPanel.tsx"
+import { OrdersPanel } from "../AdminPortal/Orderspanel .tsx";
+import StockImport from "../AdminPortal/StockImport.tsx";
 
 interface AdminPortalProps {
   onExitToStore: () => void;
 }
 
+type Tab =
+  | "dashboard"
+  | "products"
+  | "orders"
+  | "inventory"
+  | "categories"
+  | "banners"
+  | "coupons"
+  | "settings"
+  | "audit";
+
+const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
+  { id: "dashboard", label: "Overview & KPIs", icon: LayoutDashboard },
+  { id: "orders", label: "Orders & Tracking", icon: ShoppingCart },
+  { id: "products", label: "Saree Catalog", icon: Package },
+  { id: "inventory", label: "Inventory & Stocks", icon: Layers },
+  { id: "categories", label: "Categories", icon: Layers },
+  { id: "banners", label: "Hero Banners", icon: Image },
+  { id: "coupons", label: "Coupons & Offers", icon: Tag },
+  { id: "settings", label: "Store Configuration", icon: Settings },
+  { id: "audit", label: "Audit Logs", icon: FileText },
+];
+
+const LOW_STOCK_LIMIT = 5;
+const inputCls = "w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded";
+const oneYearFromNow = () =>
+  new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10);
+
 export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
-  const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'products' | 'orders' | 'inventory' | 'categories' | 'banners' | 'coupons' | 'settings' | 'audit'
-  >('dashboard');
+  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
 
   const [session, setSession] = useState(storeService.getSession());
   const [stats, setStats] = useState(storeService.getDashboardStats());
+  const [cloud, setCloud] = useState(storeService.getCloudStatus());
   const [products, setProducts] = useState<SareeProduct[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
@@ -2769,172 +4275,409 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
-  const [settings, setSettings] = useState<StoreSettings>(storeService.getSettings());
+  const [settings, setSettings] = useState<StoreSettings>(
+    storeService.getSettings(),
+  );
 
-  // Editing modals
-  const [editingProduct, setEditingProduct] = useState<Partial<SareeProduct> | null>(null);
+  // Product modal
+  const [editingProduct, setEditingProduct] =
+    useState<Partial<SareeProduct> | null>(null);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [formError, setFormError] = useState('');
-  const [stockAdjustItem, setStockAdjustItem] = useState<{ productId: string; variantId: string; productName: string; colorName: string; currentStock: number } | null>(null);
+  const [formError, setFormError] = useState("");
+
+  // Category modal
+  const [editingCategory, setEditingCategory] =
+    useState<Partial<CategoryItem> | null>(null);
+  const [catUploading, setCatUploading] = useState(false);
+  const [catError, setCatError] = useState("");
+
+  // Banner modal
+  const [editingBanner, setEditingBanner] =
+    useState<Partial<PromotionalBanner> | null>(null);
+  const [bannerUploading, setBannerUploading] = useState(false);
+  const [bannerError, setBannerError] = useState("");
+
+  // Stock / orders
+  const [stockAdjustItem, setStockAdjustItem] = useState<{
+    productId: string;
+    variantId: string;
+    productName: string;
+    colorName: string;
+    currentStock: number;
+  } | null>(null);
   const [adjustmentAmount, setAdjustmentAmount] = useState(5);
-  const [adjustmentReason, setAdjustmentReason] = useState('New handloom shipment arrived from Kolhapur weavers');
+  const [adjustmentReason, setAdjustmentReason] = useState(
+    "New handloom shipment arrived from Kolhapur weavers",
+  );
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [courierInput, setCourierInput] = useState('Blue Dart Express');
-  const [trackingNumberInput, setTrackingNumberInput] = useState('');
-  const [trackingUrlInput, setTrackingUrlInput] = useState('https://www.bluedart.com');
+  const [courierInput, setCourierInput] = useState("Blue Dart Express");
+  const [trackingNumberInput, setTrackingNumberInput] = useState("");
+  const [trackingUrlInput] = useState("https://www.bluedart.com");
 
   // Coupon form
-  const [newCouponCode, setNewCouponCode] = useState('');
+  const [newCouponCode, setNewCouponCode] = useState("");
   const [newCouponDiscount, setNewCouponDiscount] = useState(15);
   const [newCouponMinOrder, setNewCouponMinOrder] = useState(4999);
+  const [newCouponValidUntil, setNewCouponValidUntil] =
+    useState(oneYearFromNow());
 
   // Settings form
-  const [announcementInput, setAnnouncementInput] = useState('');
+  const [announcementInput, setAnnouncementInput] = useState("");
+
+  const by = session?.fullName || "Owner";
 
   useEffect(() => {
     const update = () => {
+      // Copies, so React always sees a change even though the service edits its arrays in place.
       setSession(storeService.getSession());
       setStats(storeService.getDashboardStats());
-      setProducts(storeService.getAllProductsAdmin());
-      setOrders(storeService.getOrders());
-      setCategories(storeService.getCategories());
-      setBanners(storeService.getBanners(false));
-      setCoupons(storeService.getCoupons());
-      setMovements(storeService.getInventoryMovements());
-      setAuditLogs(storeService.getAuditLogs());
+      setCloud(storeService.getCloudStatus());
+      setProducts([...storeService.getAllProductsAdmin()]);
+      setOrders([...storeService.getOrders()]);
+      setCategories([...storeService.getCategories()]);
+      setBanners([...storeService.getBanners(false)]);
+      setCoupons([...storeService.getCoupons()]);
+      setMovements([...storeService.getInventoryMovements()]);
+      setAuditLogs([...storeService.getAuditLogs()]);
       setSettings(storeService.getSettings());
     };
     update();
     return storeService.subscribe(update);
   }, []);
 
-  const handleAdminAuth = () => {
-    storeService.setSession({
-      email: 'ankitakhot015@gmail.com',
-      fullName: 'Ankita Khot (Owner)',
-      phone: '9096863092',
-      role: 'admin',
-      token: 'adm_kfs_' + Date.now()
+  /* ---------------- Products ---------------- */
+  const openNewProduct = () => {
+    setFormError("");
+    setUploading(false);
+    setEditingProduct({
+      name: "",
+      fabric: "Pure Mulberry Silk",
+      occasion: "Festive & Weddings",
+      lengthMeters: 6.3,
+      blousePiece: "Running 0.8m unstitched silk piece included",
+      careInstructions: "Dry clean only",
+      categoryIds: [],
+      categoryNames: [],
+      variants: [
+        {
+          variantId: `var-${Date.now()}-1`,
+          colorName: "Royal Purple & Gold",
+          colorHex: "#4B0082",
+          sku: "KFS-SILK-" + Math.floor(100 + Math.random() * 900),
+          originalPricePaise: 1699900,
+          sellingPricePaise: 1299900,
+          inventoryStock: 8,
+          reservedStock: 0,
+          images: [],
+        },
+      ],
+      featured: true,
+      isPublished: true,
     });
+    setIsProductModalOpen(true);
+  };
+
+  const openEditProduct = (p: SareeProduct) => {
+    setFormError("");
+    setUploading(false);
+    // Work on a copy so the live store is not changed until Save.
+    setEditingProduct(JSON.parse(JSON.stringify(p)));
+    setIsProductModalOpen(true);
   };
 
   const closeProductModal = () => {
-    if (uploading && !confirm('Photos are still uploading. Close anyway?')) return;
+    if (uploading && !confirm("Photos are still uploading. Close anyway?"))
+      return;
     setUploading(false);
-    setFormError('');
+    setFormError("");
     setIsProductModalOpen(false);
     setEditingProduct(null);
   };
 
+  const toggleProductCategory = (c: CategoryItem) => {
+    setEditingProduct((prev) => {
+      if (!prev) return prev;
+      const ids = new Set(prev.categoryIds ?? []);
+      if (ids.has(c.id)) ids.delete(c.id);
+      else ids.add(c.id);
+      const selected = categories.filter((x) => ids.has(x.id));
+      return {
+        ...prev,
+        categoryIds: selected.map((x) => x.id),
+        categoryNames: selected.map((x) => x.name),
+      };
+    });
+  };
+
   const handleSaveProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingProduct?.name) return;
-
+    if (!editingProduct?.name?.trim()) return;
     if (uploading) {
-      setFormError('Please wait until all photos finish uploading.');
+      setFormError("Please wait until all photos finish uploading.");
       return;
     }
-
+    if (
+      !editingProduct.categoryIds ||
+      editingProduct.categoryIds.length === 0
+    ) {
+      setFormError("Select at least one category for this saree.");
+      return;
+    }
     const variants = editingProduct.variants ?? [];
     const error = validateVariants(variants);
     if (error) {
       setFormError(error);
       return;
     }
-
     storeService.saveProduct(
-      {
-        ...editingProduct,
-        variants,
-        // main photo = first photo of the first colour (used by cards and cart)
-        primaryImage: variants[0].images[0]
-      },
-      session?.fullName || 'Owner'
+      { ...editingProduct, name: editingProduct.name.trim(), variants },
+      by,
     );
 
-    setFormError('');
+    setFormError("");
     setUploading(false);
     setIsProductModalOpen(false);
     setEditingProduct(null);
   };
 
   const handleDeleteProduct = (id: string) => {
-    if (confirm('Are you sure you want to delete this saree?')) {
-      storeService.deleteProduct(id, session?.fullName || 'Owner');
-    }
+    if (confirm("Are you sure you want to delete this saree?"))
+      storeService.deleteProduct(id, by);
   };
 
+  /* ---------------- Categories (add / edit / delete) ---------------- */
+  const openNewCategory = () => {
+    setCatError("");
+    setCatUploading(false);
+    setEditingCategory({ name: "", imageUrl: "", isActive: true });
+  };
+
+  const openEditCategory = (c: CategoryItem) => {
+    setCatError("");
+    setCatUploading(false);
+    setEditingCategory({ ...c });
+  };
+
+  const closeCategoryModal = () => {
+    if (catUploading && !confirm("Image is still uploading. Close anyway?"))
+      return;
+    setCatUploading(false);
+    setCatError("");
+    setEditingCategory(null);
+  };
+
+  const handleSaveCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory) return;
+    if (catUploading)
+      return setCatError("Please wait for the image to finish uploading.");
+    if (!editingCategory.name?.trim())
+      return setCatError("Category name is required.");
+    if (!editingCategory.imageUrl)
+      return setCatError("Please upload a category image.");
+    storeService.saveCategory(
+      { ...editingCategory, name: editingCategory.name.trim() },
+      by,
+    );
+    setCatError("");
+    setEditingCategory(null);
+  };
+
+  const handleDeleteCategory = (c: CategoryItem) => {
+    const used = products.filter((p) => p.categoryIds?.includes(c.id)).length;
+    const extra = used
+      ? `\n\n${used} saree(s) use this category and will be removed from it.`
+      : "";
+    if (confirm(`Delete category "${c.name}"?${extra}`))
+      storeService.deleteCategory(c.id, by);
+  };
+
+  /* ---------------- Banners ---------------- */
+  const openNewBanner = () => {
+    setBannerError("");
+    setBannerUploading(false);
+    setEditingBanner({
+      heading: "",
+      subtitle: "",
+      badgeText: "",
+      imageUrl: "",
+      ctaText: "Shop Collection",
+      ctaLink: "/catalog",
+      isActive: true,
+    });
+  };
+
+  const handleSaveBanner = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBanner) return;
+    if (bannerUploading)
+      return setBannerError("Please wait for the image to finish uploading.");
+    if (!editingBanner.heading?.trim())
+      return setBannerError("Banner heading is required.");
+    if (!editingBanner.imageUrl)
+      return setBannerError("Please upload a banner image.");
+    storeService.saveBanner(
+      { ...editingBanner, heading: editingBanner.heading.trim() },
+      by,
+    );
+    setEditingBanner(null);
+  };
+
+  const handleDeleteBanner = (b: PromotionalBanner) => {
+    if (confirm(`Delete banner "${b.heading}"?`))
+      storeService.deleteBanner(b.id, by);
+  };
+
+  /* ---------------- Stock / Orders / Coupons / Settings ---------------- */
   const handlePerformStockAdjustment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!stockAdjustItem) return;
-
-    storeService.adjustStock({
+    const result = storeService.adjustStock({
       productId: stockAdjustItem.productId,
       variantId: stockAdjustItem.variantId,
       adjustment: Number(adjustmentAmount),
       reason: adjustmentReason,
-      performedBy: session?.fullName || 'Owner'
+      performedBy: by,
     });
+    if (!result.success) {
+      alert(result.message);
+      return;
+    }
     setStockAdjustItem(null);
   };
 
-  const handleUpdateOrderStatus = (orderId: string, status: OrderStatus) => {
-    storeService.updateOrderStatus(orderId, status, session?.fullName || 'Owner', `Status updated in admin console`);
-    if (selectedOrder?.id === orderId) {
+  const refreshSelectedOrder = (orderId: string) => {
+    if (selectedOrder?.id === orderId)
       setSelectedOrder(storeService.getOrderById(orderId) || null);
+  };
+
+  const handleUpdateOrderStatus = (orderId: string, status: OrderStatus) => {
+    try {
+      storeService.updateOrderStatus(
+        orderId,
+        status,
+        by,
+        "Status updated in admin console",
+      );
+      refreshSelectedOrder(orderId);
+    } catch (err: any) {
+      alert(err?.message || "Could not update this order.");
     }
   };
 
   const handleAssignTracking = (orderId: string) => {
-    if (!trackingNumberInput) return;
-    storeService.updateShipmentDetails(orderId, {
-      courierName: courierInput,
-      trackingNumber: trackingNumberInput,
-      trackingUrl: trackingUrlInput
-    }, session?.fullName || 'Owner');
-    if (selectedOrder?.id === orderId) {
-      setSelectedOrder(storeService.getOrderById(orderId) || null);
+    if (!trackingNumberInput.trim()) return;
+    const ok = storeService.updateShipmentDetails(
+      orderId,
+      {
+        courierName: courierInput,
+        trackingNumber: trackingNumberInput.trim(),
+        trackingUrl: trackingUrlInput,
+      },
+      by,
+    );
+    if (!ok) {
+      alert("This order is cancelled or refunded, so it cannot be shipped.");
+      return;
     }
-    setTrackingNumberInput('');
+    refreshSelectedOrder(orderId);
+    setTrackingNumberInput("");
   };
 
   const handleProcessRefund = (orderId: string, amountPaise: number) => {
-    if (confirm(`Confirm refund of ${formatPriceINR(amountPaise)}?`)) {
-      storeService.processOrderRefund(orderId, amountPaise, session?.fullName || 'Owner');
-      if (selectedOrder?.id === orderId) {
-        setSelectedOrder(storeService.getOrderById(orderId) || null);
-      }
-    }
+    if (!confirm(`Confirm refund of ${formatPriceINR(amountPaise)}?`)) return;
+    const ok = storeService.processOrderRefund(orderId, amountPaise, by);
+    if (!ok) alert("This order cannot be refunded (it is not a paid order).");
+    refreshSelectedOrder(orderId);
   };
 
   const handleAddCoupon = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCouponCode) return;
-    storeService.saveCoupon({
-      code: newCouponCode.toUpperCase().trim(),
-      description: `Save ${newCouponDiscount}% on orders above ₹${newCouponMinOrder}`,
-      discountPercentage: Number(newCouponDiscount),
-      minOrderValuePaise: Number(newCouponMinOrder) * 100,
-      maxDiscountPaise: 300000,
-      usageLimit: 200,
-      isActive: true,
-      validUntil: '2026-12-31'
-    }, session?.fullName || 'Owner');
-    setNewCouponCode('');
+    if (!newCouponCode.trim()) return;
+    storeService.saveCoupon(
+      {
+        code: newCouponCode.toUpperCase().trim(),
+        description: `Save ${newCouponDiscount}% on orders above ₹${newCouponMinOrder}`,
+        discountPercentage: Number(newCouponDiscount),
+        minOrderValuePaise: Number(newCouponMinOrder) * 100,
+        maxDiscountPaise: 300000,
+        usageLimit: 200,
+        isActive: true,
+        validUntil: newCouponValidUntil,
+      },
+      by,
+    );
+    setNewCouponCode("");
   };
 
   const handleAddAnnouncement = () => {
     if (!announcementInput.trim()) return;
-    const current = [...(settings.announcementMessages || []), announcementInput.trim()];
-    storeService.updateSettings({ announcementMessages: current }, session?.fullName || 'Owner');
-    setAnnouncementInput('');
+    const current = [
+      ...(settings.announcementMessages || []),
+      announcementInput.trim(),
+    ];
+    storeService.updateSettings({ announcementMessages: current }, by);
+    setAnnouncementInput("");
   };
 
   const handleRemoveAnnouncement = (index: number) => {
-    const current = settings.announcementMessages.filter((_, i) => i !== index);
-    storeService.updateSettings({ announcementMessages: current }, session?.fullName || 'Owner');
+    const current = (settings.announcementMessages || []).filter(
+      (_, i) => i !== index,
+    );
+    storeService.updateSettings({ announcementMessages: current }, by);
   };
+
+  /* ---------------- Access guard (UI only; also protect with Firestore rules) ---------------- */
+  if (session?.role !== "admin") {
+    return (
+      <div className="min-h-screen bg-[#FAF7F0] flex items-center justify-center p-6">
+        <div className="bg-white border border-[#E6E0D8] rounded-xl p-8 max-w-sm text-center space-y-3 shadow-xs">
+          <h2 className="text-lg font-serif font-bold text-[#292522]">
+            Access denied
+          </h2>
+          <p className="text-xs text-[#766B61]">
+            Please log in with the owner account to open the Owner Portal.
+          </p>
+          <button
+            onClick={onExitToStore}
+            className="px-4 py-2 bg-[#641D32] text-white text-xs font-semibold rounded"
+          >
+            Back to store
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const sectionHeader = (
+    title: string,
+    sub: string,
+    action?: React.ReactNode,
+  ) => (
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h2 className="text-2xl font-serif font-bold text-[#292522]">
+          {title}
+        </h2>
+        <p className="text-xs text-[#766B61] mt-0.5">{sub}</p>
+      </div>
+      {action}
+    </div>
+  );
+
+  const addBtn = (label: string, onClick: () => void) => (
+    <button
+      onClick={onClick}
+      className="px-4 py-2 bg-[#641D32] hover:bg-[#4A1223] text-white text-xs font-semibold rounded-md shadow-xs flex items-center gap-1.5 transition-colors"
+    >
+      <Plus className="w-4 h-4" />
+      <span>{label}</span>
+    </button>
+  );
+
+  const modalShell =
+    "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs";
 
   return (
     <div className="min-h-screen bg-[#FAF7F0] flex flex-col">
@@ -2949,13 +4692,18 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
             <span>Customer Website</span>
           </button>
           <div className="flex items-center gap-2">
-            <span className="font-serif font-bold text-lg text-[#FAF7F0]">Kolhapuri Fashion Saree</span>
-            <span className="text-[11px] text-[#C7A66A] font-semibold bg-[#4A1223] px-2 py-0.5 rounded">Owner Portal</span>
+            <span className="font-serif font-bold text-lg text-[#FAF7F0]">
+              Kolhapuri Fashion Saree
+            </span>
+            <span className="text-[11px] text-[#C7A66A] font-semibold bg-[#4A1223] px-2 py-0.5 rounded">
+              Owner Portal
+            </span>
           </div>
         </div>
-
         <div className="flex items-center gap-3 text-xs">
-          <span className="hidden sm:inline text-white/80">Owner: Ankita Khot</span>
+          <span className="hidden sm:inline text-white/80">
+            Owner: {session.fullName}
+          </span>
           <button
             onClick={onExitToStore}
             className="p-1.5 hover:text-[#C7A66A] transition-colors"
@@ -2966,181 +4714,138 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
         </div>
       </header>
 
-      {/* Main Container with Sidebar */}
+      {/* Cloud sync warning */}
+      {(cloud.error || !cloud.ready) && (
+        <div className="bg-amber-50 border-b border-amber-200 px-6 py-2 text-xs text-amber-900 flex items-center justify-between gap-3">
+          <span className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            {cloud.error || "Connecting to the cloud database…"} Changes are
+            saved on this device only until it connects.
+          </span>
+          <button
+            onClick={() =>
+              storeService
+                .forceUploadAll()
+                .catch((e: any) => alert(e?.message || "Sync failed"))
+            }
+            className="px-3 py-1 bg-amber-200 hover:bg-amber-300 rounded font-semibold shrink-0"
+          >
+            Sync now
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar Nav */}
+        {/* Sidebar */}
         <aside className="w-60 bg-white border-r border-[#E6E0D8] p-4 flex flex-col justify-between shrink-0">
           <div className="space-y-1">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-                activeTab === 'dashboard' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>Overview & KPIs</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('orders')}
-              className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-                activeTab === 'orders' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <ShoppingCart className="w-4 h-4" />
-                <span>Orders & Tracking</span>
-              </div>
-              {orders.length > 0 && (
-                <span className="bg-[#C7A66A] text-[#292522] px-1.5 py-0.2 rounded text-[10px] font-bold">
-                  {orders.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('products')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-                activeTab === 'products' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
-              }`}
-            >
-              <Package className="w-4 h-4" />
-              <span>Saree Catalog</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('inventory')}
-              className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-                activeTab === 'inventory' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Layers className="w-4 h-4" />
-                <span>Inventory & Stocks</span>
-              </div>
-              {stats.lowStockProducts > 0 && (
-                <span className="bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded text-[10px] font-bold">
-                  {stats.lowStockProducts} Low
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('categories')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-                activeTab === 'categories' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>Categories</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('banners')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-                activeTab === 'banners' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
-              }`}
-            >
-              <Image className="w-4 h-4" />
-              <span>Hero Banners</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('coupons')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-                activeTab === 'coupons' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
-              }`}
-            >
-              <Tag className="w-4 h-4" />
-              <span>Coupons & Offers</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('settings')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-                activeTab === 'settings' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
-              }`}
-            >
-              <Settings className="w-4 h-4" />
-              <span>Store Configuration</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('audit')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
-                activeTab === 'audit' ? 'bg-[#641D32] text-white' : 'text-[#292522] hover:bg-[#FAF7F0]'
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              <span>Audit Logs</span>
-            </button>
+            {TABS.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-md transition-colors ${
+                  activeTab === id
+                    ? "bg-[#641D32] text-white"
+                    : "text-[#292522] hover:bg-[#FAF7F0]"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Icon className="w-4 h-4" />
+                  <span>{label}</span>
+                </div>
+                {id === "orders" && orders.length > 0 && (
+                  <span className="bg-[#C7A66A] text-[#292522] px-1.5 rounded text-[10px] font-bold">
+                    {orders.length}
+                  </span>
+                )}
+                {id === "inventory" && stats.lowStockProducts > 0 && (
+                  <span className="bg-amber-100 text-amber-900 px-1.5 rounded text-[10px] font-bold">
+                    {stats.lowStockProducts} Low
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
 
           <div className="pt-4 border-t border-[#E6E0D8] text-[11px] text-[#766B61]">
-            <p><strong>Boutique Address:</strong></p>
+            <p>
+              <strong>Boutique Address:</strong>
+            </p>
             <p className="mt-0.5 leading-tight">{settings.businessAddress}</p>
-            <p className="mt-1 font-semibold text-[#641D32]">Ph: {settings.businessPhone}</p>
+            <p className="mt-1 font-semibold text-[#641D32]">
+              Ph: {settings.businessPhone}
+            </p>
           </div>
         </aside>
 
-        {/* Tab View Content */}
         <main className="flex-1 overflow-y-auto p-6 sm:p-8">
-          
           {/* 1. DASHBOARD */}
-          {activeTab === 'dashboard' && (
+          {activeTab === "dashboard" && (
             <div className="space-y-8 max-w-6xl">
-              <div>
-                <h2 className="text-2xl font-serif font-bold text-[#292522]">Boutique Performance Dashboard</h2>
-                <p className="text-xs text-[#766B61] mt-0.5">Authoritative metrics calculated from real database orders and stock movements.</p>
-              </div>
+              {sectionHeader(
+                "Boutique Performance Dashboard",
+                "Metrics calculated from your orders and stock movements.",
+              )}
 
-              {/* KPI Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white p-5 rounded-xl border border-[#E6E0D8] shadow-xs space-y-1">
-                  <span className="text-xs text-[#766B61] font-medium">Confirmed Paid Revenue</span>
+                  <span className="text-xs text-[#766B61] font-medium">
+                    Paid Revenue
+                  </span>
                   <div className="text-2xl font-bold text-[#641D32] tabular-nums font-sans">
                     {formatPriceINR(stats.confirmedPaidRevenuePaise)}
                   </div>
-                  <span className="text-[11px] text-emerald-700 font-semibold">100% Verified Razorpay</span>
+                  <span className="text-[11px] text-emerald-700 font-semibold">
+                    From orders marked Paid
+                  </span>
                 </div>
-
                 <div className="bg-white p-5 rounded-xl border border-[#E6E0D8] shadow-xs space-y-1">
-                  <span className="text-xs text-[#766B61] font-medium">Total Orders Placed</span>
+                  <span className="text-xs text-[#766B61] font-medium">
+                    Total Orders Placed
+                  </span>
                   <div className="text-2xl font-bold text-[#292522] tabular-nums font-sans">
                     {stats.totalOrders}
                   </div>
-                  <span className="text-[11px] text-[#766B61]">{stats.processingOrders} in processing / packaging</span>
+                  <span className="text-[11px] text-[#766B61]">
+                    {stats.processingOrders} in processing / packaging
+                  </span>
                 </div>
-
                 <div className="bg-white p-5 rounded-xl border border-[#E6E0D8] shadow-xs space-y-1">
-                  <span className="text-xs text-[#766B61] font-medium">Active Saree Weaves</span>
+                  <span className="text-xs text-[#766B61] font-medium">
+                    Sarees in Catalog
+                  </span>
                   <div className="text-2xl font-bold text-[#292522] tabular-nums font-sans">
                     {stats.totalProducts}
                   </div>
-                  <span className="text-[11px] text-[#766B61]">Across Paithani & Bridal Silks</span>
+                  <span className="text-[11px] text-[#766B61]">
+                    {stats.outOfStockProducts} out of stock
+                  </span>
                 </div>
-
                 <div className="bg-white p-5 rounded-xl border border-[#E6E0D8] shadow-xs space-y-1">
-                  <span className="text-xs text-[#766B61] font-medium">Low Stock Alerts</span>
+                  <span className="text-xs text-[#766B61] font-medium">
+                    Low Stock Alerts
+                  </span>
                   <div className="text-2xl font-bold text-amber-700 tabular-nums font-sans">
                     {stats.lowStockProducts}
                   </div>
-                  <span className="text-[11px] text-amber-800">Requires weaver restocking</span>
+                  <span className="text-[11px] text-amber-800">
+                    Requires weaver restocking
+                  </span>
                 </div>
               </div>
 
-              {/* Recent Orders in Dashboard */}
               <div className="bg-white rounded-xl border border-[#E6E0D8] p-6 shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-serif font-bold text-[#292522]">Recent Orders</h3>
+                  <h3 className="text-base font-serif font-bold text-[#292522]">
+                    Recent Orders
+                  </h3>
                   <button
-                    onClick={() => setActiveTab('orders')}
+                    onClick={() => setActiveTab("orders")}
                     className="text-xs font-semibold text-[#641D32] hover:underline"
                   >
                     View All Orders →
                   </button>
                 </div>
-
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs text-left">
                     <thead className="bg-[#FAF7F0] text-[#766B61] font-semibold border-b border-[#E6E0D8]">
@@ -3156,22 +4861,40 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                     <tbody className="divide-y divide-[#E6E0D8]">
                       {orders.slice(0, 5).map((o) => (
                         <tr key={o.id} className="hover:bg-[#FAF7F0]/60">
-                          <td className="p-3 font-mono font-bold text-[#641D32]">#{o.orderNumber}</td>
-                          <td className="p-3">
-                            <span className="font-semibold text-[#292522] block">{o.customerName}</span>
-                            <span className="text-[#766B61] text-[11px]">{o.customerEmail}</span>
+                          <td className="p-3 font-mono font-bold text-[#641D32]">
+                            #{o.orderNumber}
                           </td>
-                          <td className="p-3 truncate max-w-[180px]">{o.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}</td>
-                          <td className="p-3 font-bold tabular-nums font-sans">{formatPriceINR(o.finalPayablePaise)}</td>
                           <td className="p-3">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              o.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                            }`}>
+                            <span className="font-semibold text-[#292522] block">
+                              {o.customerName}
+                            </span>
+                            <span className="text-[#766B61] text-[11px]">
+                              {o.customerEmail}
+                            </span>
+                          </td>
+                          <td className="p-3 truncate max-w-[180px]">
+                            {o.items
+                              .map((i) => `${i.quantity}x ${i.name}`)
+                              .join(", ")}
+                          </td>
+                          <td className="p-3 font-bold tabular-nums font-sans">
+                            {formatPriceINR(o.finalPayablePaise)}
+                          </td>
+                          <td className="p-3">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                o.paymentStatus === "Paid"
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-amber-100 text-amber-800"
+                              }`}
+                            >
                               {o.paymentStatus}
                             </span>
                           </td>
                           <td className="p-3">
-                            <span className="font-semibold">{o.orderStatus}</span>
+                            <span className="font-semibold">
+                              {o.orderStatus}
+                            </span>
                           </td>
                         </tr>
                       ))}
@@ -3182,72 +4905,53 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
             </div>
           )}
 
-          {/* 2. PRODUCTS MANAGEMENT */}
-          {activeTab === 'products' && (
+          {/* 2. PRODUCTS */}
+          {activeTab === "products" && (
             <div className="space-y-6 max-w-6xl">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-serif font-bold text-[#292522]">Saree Product Catalog Management</h2>
-                  <p className="text-xs text-[#766B61] mt-0.5">Manage Paithani, Kanjivaram, and designer sarees, SKU, color variants, and prices.</p>
-                </div>
-                <button
-                  onClick={() => {
-                    setFormError('');
-                    setUploading(false);
-                    setEditingProduct({
-                      name: '',
-                      fabric: 'Pure Mulberry Silk',
-                      occasion: 'Festive & Weddings',
-                      lengthMeters: 6.3,
-                      blousePiece: 'Running 0.8m unstitched silk piece included',
-                      careInstructions: 'Dry clean only',
-                      categoryNames: ['Silk Sarees'],
-                      variants: [
-                        {
-                          variantId: `var-${Date.now()}-1`,
-                          colorName: 'Royal Purple & Gold',
-                          colorHex: '#4B0082',
-                          sku: 'KFS-SILK-' + Math.floor(100 + Math.random() * 900),
-                          originalPricePaise: 1699900,
-                          sellingPricePaise: 1299900,
-                          inventoryStock: 8,
-                          reservedStock: 0,
-                          images: []
-                        }
-                      ],
-                      featured: true,
-                      isPublished: true
-                    });
-                    setIsProductModalOpen(true);
-                  }}
-                  className="px-4 py-2 bg-[#641D32] hover:bg-[#4A1223] text-white text-xs font-semibold rounded-md shadow-xs flex items-center gap-1.5 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add New Saree</span>
-                </button>
-              </div>
+              {sectionHeader(
+                "Saree Product Catalog Management",
+                "Manage sarees, categories, colour variants, photos and prices.",
+                addBtn("Add New Saree", openNewProduct),
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((p) => {
                   const v = p.variants[0];
-                  const totalStock = p.variants.reduce((sum, item) => sum + (item.inventoryStock - item.reservedStock), 0);
+                  const totalStock = p.variants.reduce(
+                    (s, i) => s + (i.inventoryStock - i.reservedStock),
+                    0,
+                  );
+                  const mainImage =
+                    p.primaryImage || p.variants[0]?.images?.[0];
                   return (
-                    <div key={p.id} className="bg-white rounded-xl border border-[#E6E0D8] overflow-hidden flex flex-col justify-between shadow-xs">
+                    <div
+                      key={p.id}
+                      className="bg-white rounded-xl border border-[#E6E0D8] overflow-hidden flex flex-col justify-between shadow-xs"
+                    >
                       <div className="aspect-[4/3] bg-[#FAF7F0] relative overflow-hidden">
                         <img
-                          src={cld(p.primaryImage || p.variants[0]?.images?.[0], { w: 600, h: 450 })}
+                          src={cld(mainImage, { w: 600, h: 450 })}
                           alt={p.name}
                           loading="lazy"
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute top-2 right-2 flex gap-1">
                           <button
-                            onClick={() => {
-                              setFormError('');
-                              setUploading(false);
-                              setEditingProduct(p);
-                              setIsProductModalOpen(true);
-                            }}
+                            onClick={() =>
+                              shareProduct({
+                                slug: p.slug || p.id,
+                                name: p.name,
+                                pricePaise: v?.sellingPricePaise || 0,
+                                image: mainImage,
+                              })
+                            }
+                            className="p-1.5 bg-white/90 hover:bg-white text-[#25D366] rounded shadow-xs"
+                            title="Share on WhatsApp & more"
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => openEditProduct(p)}
                             className="p-1.5 bg-white/90 hover:bg-white text-[#292522] rounded shadow-xs"
                             title="Edit"
                           >
@@ -3262,18 +4966,24 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                           </button>
                         </div>
                       </div>
-
                       <div className="p-4 space-y-2">
                         <div className="flex items-center justify-between text-[11px] text-[#766B61]">
                           <span>{p.fabric}</span>
                           <span>SKU: {p.sku}</span>
                         </div>
-                        <h4 className="text-sm font-semibold font-serif text-[#292522] line-clamp-1">{p.name}</h4>
+                        <h4 className="text-sm font-semibold font-serif text-[#292522] line-clamp-1">
+                          {p.name}
+                        </h4>
+                        <p className="text-[11px] text-[#766B61] line-clamp-1">
+                          {p.categoryNames?.join(", ") || "No category"}
+                        </p>
                         <div className="flex items-baseline justify-between pt-1 border-t border-[#E6E0D8]">
                           <span className="text-base font-bold text-[#641D32] tabular-nums font-sans">
                             {formatPriceINR(v?.sellingPricePaise || 0)}
                           </span>
-                          <span className={`text-[11px] font-semibold ${totalStock <= 3 ? 'text-amber-700' : 'text-emerald-700'}`}>
+                          <span
+                            className={`text-[11px] font-semibold ${totalStock <= LOW_STOCK_LIMIT ? "text-amber-700" : "text-emerald-700"}`}
+                          >
                             Stock: {totalStock} units
                           </span>
                         </div>
@@ -3285,13 +4995,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
             </div>
           )}
 
-          {/* 3. ORDERS MANAGEMENT */}
-          {activeTab === 'orders' && (
+          {/* 3. ORDERS */}
+          {activeTab === "orders" && (
             <div className="space-y-6 max-w-6xl">
-              <div>
-                <h2 className="text-2xl font-serif font-bold text-[#292522]">Order & Shipment Tracking Management</h2>
-                <p className="text-xs text-[#766B61] mt-0.5">Control order status lifecycle, dispatch shipments via Blue Dart/Delhivery, and handle authorized refunds.</p>
-              </div>
+              {sectionHeader(
+                "Order & Shipment Tracking Management",
+                "Control order status lifecycle, dispatch shipments via Blue Dart/Delhivery, and handle authorized refunds.",
+              )}
 
               <OrdersPanel
                 orders={orders}
@@ -3299,38 +5009,56 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                 onManage={(o: Order) => setSelectedOrder(o)}
                 onAssignCourier={(o: Order) => {
                   setSelectedOrder(o);
-                  setTrackingNumberInput(`BDKOL${Date.now().toString().slice(-6)}`);
+                  setTrackingNumberInput(
+                    `BDKOL${Date.now().toString().slice(-6)}`,
+                  );
                 }}
               />
 
-              {/* Order Detail Side Drawer / Modal */}
               {selectedOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+                <div className={modalShell}>
                   <div className="bg-white rounded-xl max-w-xl w-full p-6 shadow-2xl border border-[#E6E0D8] space-y-4 max-h-[90vh] overflow-y-auto">
                     <div className="flex items-center justify-between pb-3 border-b border-[#E6E0D8]">
                       <div>
-                        <span className="text-xs text-[#766B61]">Order Inspector</span>
-                        <h3 className="text-lg font-mono font-bold text-[#641D32]">#{selectedOrder.orderNumber}</h3>
+                        <span className="text-xs text-[#766B61]">
+                          Order Inspector
+                        </span>
+                        <h3 className="text-lg font-mono font-bold text-[#641D32]">
+                          #{selectedOrder.orderNumber}
+                        </h3>
                       </div>
-                      <button onClick={() => setSelectedOrder(null)} className="p-1 text-[#766B61] hover:text-[#292522]">
+                      <button
+                        onClick={() => setSelectedOrder(null)}
+                        className="p-1 text-[#766B61] hover:text-[#292522]"
+                      >
                         ✕
                       </button>
                     </div>
 
                     <div className="space-y-3 text-xs">
                       <div>
-                        <strong className="block text-[#292522] mb-1">Customer Delivery Address:</strong>
+                        <strong className="block text-[#292522] mb-1">
+                          Customer Delivery Address:
+                        </strong>
                         <p className="text-[#766B61]">
-                          {selectedOrder.shippingAddressSnapshot.fullName}<br />
-                          {selectedOrder.shippingAddressSnapshot.addressLine1}<br />
-                          {selectedOrder.shippingAddressSnapshot.city}, {selectedOrder.shippingAddressSnapshot.state} - {selectedOrder.shippingAddressSnapshot.pinCode}<br />
-                          Phone: {selectedOrder.shippingAddressSnapshot.mobileNumber} · Email: {selectedOrder.customerEmail}
+                          {selectedOrder.shippingAddressSnapshot.fullName}
+                          <br />
+                          {selectedOrder.shippingAddressSnapshot.addressLine1}
+                          <br />
+                          {selectedOrder.shippingAddressSnapshot.city},{" "}
+                          {selectedOrder.shippingAddressSnapshot.state} -{" "}
+                          {selectedOrder.shippingAddressSnapshot.pinCode}
+                          <br />
+                          Phone:{" "}
+                          {selectedOrder.shippingAddressSnapshot.mobileNumber} ·
+                          Email: {selectedOrder.customerEmail}
                         </p>
                       </div>
 
-                      {/* Shipment Tracking assignment form */}
                       <div className="p-3 bg-[#FAF7F0] border border-[#E6E0D8] rounded-md space-y-2">
-                        <strong className="block text-[#292522]">Shipment Tracking Assignment:</strong>
+                        <strong className="block text-[#292522]">
+                          Shipment Tracking Assignment:
+                        </strong>
                         <div className="grid grid-cols-2 gap-2">
                           <input
                             type="text"
@@ -3343,7 +5071,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                             type="text"
                             placeholder="Tracking Number"
                             value={trackingNumberInput}
-                            onChange={(e) => setTrackingNumberInput(e.target.value)}
+                            onChange={(e) =>
+                              setTrackingNumberInput(e.target.value)
+                            }
                             className="p-1.5 bg-white border border-[#E6E0D8] rounded text-xs font-mono"
                           />
                         </div>
@@ -3355,18 +5085,26 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                         </button>
                       </div>
 
-                      {/* Refund Trigger if order eligible */}
-                      {selectedOrder.paymentStatus === 'Paid' && selectedOrder.orderStatus !== 'Refunded' && (
-                        <div className="pt-2 border-t border-[#E6E0D8] flex items-center justify-between">
-                          <span className="text-[#766B61]">Need to cancel/refund?</span>
-                          <button
-                            onClick={() => handleProcessRefund(selectedOrder.id, selectedOrder.finalPayablePaise)}
-                            className="px-3 py-1 bg-red-700 hover:bg-red-800 text-white rounded font-medium text-xs"
-                          >
-                            Process Refund ({formatPriceINR(selectedOrder.finalPayablePaise)})
-                          </button>
-                        </div>
-                      )}
+                      {selectedOrder.paymentStatus === "Paid" &&
+                        selectedOrder.orderStatus !== "Refunded" && (
+                          <div className="pt-2 border-t border-[#E6E0D8] flex items-center justify-between">
+                            <span className="text-[#766B61]">
+                              Need to cancel/refund?
+                            </span>
+                            <button
+                              onClick={() =>
+                                handleProcessRefund(
+                                  selectedOrder.id,
+                                  selectedOrder.finalPayablePaise,
+                                )
+                              }
+                              className="px-3 py-1 bg-red-700 hover:bg-red-800 text-white rounded font-medium text-xs"
+                            >
+                              Process Refund (
+                              {formatPriceINR(selectedOrder.finalPayablePaise)})
+                            </button>
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -3374,13 +5112,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
             </div>
           )}
 
-          {/* 4. INVENTORY & STOCK */}
-          {activeTab === 'inventory' && (
+          {/* 4. INVENTORY */}
+          {activeTab === "inventory" && (
             <div className="space-y-6 max-w-6xl">
-              <div>
-                <h2 className="text-2xl font-serif font-bold text-[#292522]">Handloom Inventory Management</h2>
-                <p className="text-xs text-[#766B61] mt-0.5">Real-time tracking of available stock, reserved stock, and physical stock adjustments.</p>
-              </div>
+              {sectionHeader(
+                "Handloom Inventory Management",
+                "Real-time tracking of available stock, reserved stock, and physical stock adjustments.",
+              )}
+              {/* Upload bill / Excel to add stock */}
+              <StockImport products={products} by={by} />
 
               <div className="bg-white rounded-xl border border-[#E6E0D8] overflow-hidden shadow-xs">
                 <table className="w-full text-xs text-left">
@@ -3400,29 +5140,49 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                       p.variants.map((v) => {
                         const available = v.inventoryStock - v.reservedStock;
                         return (
-                          <tr key={v.variantId} className="hover:bg-[#FAF7F0]/60">
-                            <td className="p-3 font-medium text-[#292522]">{p.name}</td>
-                            <td className="p-3 flex items-center gap-1.5">
-                              <span className="w-3 h-3 rounded-full border" style={{ backgroundColor: v.colorHex }} />
-                              <span>{v.colorName}</span>
+                          <tr
+                            key={v.variantId}
+                            className="hover:bg-[#FAF7F0]/60"
+                          >
+                            <td className="p-3 font-medium text-[#292522]">
+                              {p.name}
                             </td>
-                            <td className="p-3 font-mono text-[11px] text-[#766B61]">{v.sku}</td>
-                            <td className="p-3 font-bold tabular-nums">{v.inventoryStock}</td>
-                            <td className="p-3 tabular-nums text-amber-800">{v.reservedStock}</td>
                             <td className="p-3">
-                              <span className={`font-bold tabular-nums ${available <= 3 ? 'text-amber-700' : 'text-emerald-700'}`}>
+                              <div className="flex items-center gap-1.5">
+                                <span
+                                  className="w-3 h-3 rounded-full border"
+                                  style={{ backgroundColor: v.colorHex }}
+                                />
+                                <span>{v.colorName}</span>
+                              </div>
+                            </td>
+                            <td className="p-3 font-mono text-[11px] text-[#766B61]">
+                              {v.sku}
+                            </td>
+                            <td className="p-3 font-bold tabular-nums">
+                              {v.inventoryStock}
+                            </td>
+                            <td className="p-3 tabular-nums text-amber-800">
+                              {v.reservedStock}
+                            </td>
+                            <td className="p-3">
+                              <span
+                                className={`font-bold tabular-nums ${available <= LOW_STOCK_LIMIT ? "text-amber-700" : "text-emerald-700"}`}
+                              >
                                 {available} units
                               </span>
                             </td>
                             <td className="p-3 text-right">
                               <button
-                                onClick={() => setStockAdjustItem({
-                                  productId: p.id,
-                                  variantId: v.variantId,
-                                  productName: p.name,
-                                  colorName: v.colorName,
-                                  currentStock: v.inventoryStock
-                                })}
+                                onClick={() =>
+                                  setStockAdjustItem({
+                                    productId: p.id,
+                                    variantId: v.variantId,
+                                    productName: p.name,
+                                    colorName: v.colorName,
+                                    currentStock: v.inventoryStock,
+                                  })
+                                }
                                 className="px-2.5 py-1 bg-[#FAF7F0] hover:bg-white text-[#641D32] border border-[#E6E0D8] rounded font-semibold text-[11px]"
                               >
                                 Adjust Stock
@@ -3430,27 +5190,41 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                             </td>
                           </tr>
                         );
-                      })
+                      }),
                     )}
                   </tbody>
                 </table>
               </div>
 
-              {/* Movement Logs */}
               <div className="bg-white rounded-xl border border-[#E6E0D8] p-6 shadow-xs space-y-3">
-                <h3 className="text-sm font-serif font-bold text-[#292522]">Stock Movement History</h3>
+                <h3 className="text-sm font-serif font-bold text-[#292522]">
+                  Stock Movement History
+                </h3>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {movements.slice(0, 15).map((m) => (
-                    <div key={m.id} className="flex items-center justify-between p-2 rounded bg-[#FAF7F0] text-xs">
+                    <div
+                      key={m.id}
+                      className="flex items-center justify-between p-2 rounded bg-[#FAF7F0] text-xs"
+                    >
                       <div>
-                        <span className="font-semibold text-[#292522]">{m.productName} ({m.colorName})</span>
-                        <span className="text-[#766B61] text-[11px] block">{m.reason} · {formatDate(m.timestamp)}</span>
+                        <span className="font-semibold text-[#292522]">
+                          {m.productName} ({m.colorName})
+                        </span>
+                        <span className="text-[#766B61] text-[11px] block">
+                          {m.reason} · {formatDate(m.timestamp)}
+                        </span>
                       </div>
                       <div className="text-right">
-                        <span className={`font-bold tabular-nums ${m.quantityChange > 0 ? 'text-emerald-700' : 'text-red-700'}`}>
-                          {m.quantityChange > 0 ? `+${m.quantityChange}` : m.quantityChange}
+                        <span
+                          className={`font-bold tabular-nums ${m.quantityChange > 0 ? "text-emerald-700" : "text-red-700"}`}
+                        >
+                          {m.quantityChange > 0
+                            ? `+${m.quantityChange}`
+                            : m.quantityChange}
                         </span>
-                        <span className="text-[11px] text-[#766B61] block">Stock: {m.stockAfter}</span>
+                        <span className="text-[11px] text-[#766B61] block">
+                          Stock: {m.stockAfter}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -3459,44 +5233,129 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
             </div>
           )}
 
-          {/* 5. CATEGORIES & BANNERS */}
-          {activeTab === 'categories' && (
+          {/* 5. CATEGORIES */}
+          {activeTab === "categories" && (
             <div className="space-y-6 max-w-6xl">
-              <div>
-                <h2 className="text-2xl font-serif font-bold text-[#292522]">Circular Saree Category Manager</h2>
-                <p className="text-xs text-[#766B61] mt-0.5">Control categories displayed on the customer homepage.</p>
-              </div>
+              {sectionHeader(
+                "Circular Saree Category Manager",
+                "Add, edit or delete the categories shown on the customer homepage.",
+                addBtn("Add Category", openNewCategory),
+              )}
+
+              {categories.length === 0 && (
+                <p className="text-xs text-[#766B61]">
+                  No categories yet. Click "Add Category" to create one.
+                </p>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {categories.map((c) => (
-                  <div key={c.id} className="bg-white rounded-xl border border-[#E6E0D8] p-4 flex items-center gap-3 shadow-xs">
-                    <img src={c.imageUrl} alt={c.name} className="w-14 h-14 rounded-full object-cover border" />
-                    <div className="flex-1">
-                      <h4 className="text-xs font-bold text-[#292522] font-serif">{c.name}</h4>
-                      <span className="text-[11px] text-emerald-700 font-semibold">Active Category</span>
+                {categories.map((c) => {
+                  const count = products.filter((p) =>
+                    p.categoryIds?.includes(c.id),
+                  ).length;
+                  return (
+                    <div
+                      key={c.id}
+                      className="bg-white rounded-xl border border-[#E6E0D8] p-4 flex items-center gap-3 shadow-xs"
+                    >
+                      <img
+                        src={cld(c.imageUrl, { w: 120, h: 120 })}
+                        alt={c.name}
+                        className="w-14 h-14 rounded-full object-cover border"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-bold text-[#292522] font-serif truncate">
+                          {c.name}
+                        </h4>
+                        <span
+                          className={`text-[11px] font-semibold ${c.isActive === false ? "text-[#766B61]" : "text-emerald-700"}`}
+                        >
+                          {c.isActive === false ? "Hidden" : "Active"} · {count}{" "}
+                          saree{count === 1 ? "" : "s"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <button
+                          onClick={() => openEditCategory(c)}
+                          className="p-1.5 hover:bg-[#FAF7F0] rounded text-[#292522]"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCategory(c)}
+                          className="p-1.5 hover:bg-[#FAF7F0] rounded text-red-600"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
 
-          {/* 6. HERO BANNERS */}
-          {activeTab === 'banners' && (
+          {/* 6. BANNERS */}
+          {activeTab === "banners" && (
             <div className="space-y-6 max-w-6xl">
-              <div>
-                <h2 className="text-2xl font-serif font-bold text-[#292522]">Promotional Hero Carousel Banners</h2>
-                <p className="text-xs text-[#766B61] mt-0.5">Manage banners rotating on the storefront homepage.</p>
-              </div>
+              {sectionHeader(
+                "Promotional Hero Carousel Banners",
+                "Add, edit or delete banners rotating on the storefront homepage.",
+                addBtn("Add Banner", openNewBanner),
+              )}
+
+              {banners.length === 0 && (
+                <p className="text-xs text-[#766B61]">
+                  No banners yet. Click "Add Banner" to create one.
+                </p>
+              )}
 
               <div className="space-y-4">
                 {banners.map((b) => (
-                  <div key={b.id} className="bg-white rounded-xl border border-[#E6E0D8] p-4 flex gap-4 items-center shadow-xs">
-                    <img src={b.imageUrl} alt={b.heading} className="w-32 h-20 rounded-lg object-cover" />
-                    <div className="flex-1 space-y-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#C7A66A]">{b.badgeText}</span>
-                      <h4 className="text-sm font-bold font-serif text-[#292522]">{b.heading}</h4>
+                  <div
+                    key={b.id}
+                    className="bg-white rounded-xl border border-[#E6E0D8] p-4 flex gap-4 items-center shadow-xs"
+                  >
+                    <img
+                      src={cld(b.imageUrl, { w: 320, h: 200 })}
+                      alt={b.heading}
+                      className="w-32 h-20 rounded-lg object-cover"
+                    />
+                    <div className="flex-1 space-y-1 min-w-0">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#C7A66A]">
+                        {b.badgeText}
+                      </span>
+                      <h4 className="text-sm font-bold font-serif text-[#292522]">
+                        {b.heading}
+                      </h4>
                       <p className="text-xs text-[#766B61]">{b.subtitle}</p>
+                      {b.isActive === false && (
+                        <span className="text-[11px] text-[#766B61] font-semibold">
+                          Hidden
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => {
+                          setBannerError("");
+                          setBannerUploading(false);
+                          setEditingBanner({ ...b });
+                        }}
+                        className="p-2 hover:bg-[#FAF7F0] rounded text-[#292522]"
+                        title="Edit"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteBanner(b)}
+                        className="p-2 hover:bg-[#FAF7F0] rounded text-red-600"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -3505,17 +5364,21 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
           )}
 
           {/* 7. COUPONS */}
-          {activeTab === 'coupons' && (
+          {activeTab === "coupons" && (
             <div className="space-y-6 max-w-6xl">
-              <div>
-                <h2 className="text-2xl font-serif font-bold text-[#292522]">Discount Coupons & Offers</h2>
-                <p className="text-xs text-[#766B61] mt-0.5">Create coupon codes (e.g. FESTIVE10, KOLHAPUR20) with minimum order values.</p>
-              </div>
+              {sectionHeader(
+                "Discount Coupons & Offers",
+                "Create coupon codes (e.g. FESTIVE10, KOLHAPUR20) with minimum order values.",
+              )}
 
-              {/* Add Coupon Form */}
-              <form onSubmit={handleAddCoupon} className="bg-white p-5 rounded-xl border border-[#E6E0D8] flex flex-wrap gap-4 items-end shadow-xs text-xs">
+              <form
+                onSubmit={handleAddCoupon}
+                className="bg-white p-5 rounded-xl border border-[#E6E0D8] flex flex-wrap gap-4 items-end shadow-xs text-xs"
+              >
                 <div>
-                  <label className="font-semibold text-[#292522] block mb-1">Coupon Code</label>
+                  <label className="font-semibold text-[#292522] block mb-1">
+                    Coupon Code
+                  </label>
                   <input
                     type="text"
                     placeholder="e.g. SPECIAL20"
@@ -3525,23 +5388,42 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-[#292522] block mb-1">Discount %</label>
+                  <label className="font-semibold text-[#292522] block mb-1">
+                    Discount %
+                  </label>
                   <input
                     type="number"
                     min="1"
                     max="50"
                     value={newCouponDiscount}
-                    onChange={(e) => setNewCouponDiscount(Number(e.target.value))}
+                    onChange={(e) =>
+                      setNewCouponDiscount(Number(e.target.value))
+                    }
                     className="p-2 border border-[#E6E0D8] rounded bg-[#FAF7F0] w-24"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-[#292522] block mb-1">Min Order (₹)</label>
+                  <label className="font-semibold text-[#292522] block mb-1">
+                    Min Order (₹)
+                  </label>
                   <input
                     type="number"
                     value={newCouponMinOrder}
-                    onChange={(e) => setNewCouponMinOrder(Number(e.target.value))}
+                    onChange={(e) =>
+                      setNewCouponMinOrder(Number(e.target.value))
+                    }
                     className="p-2 border border-[#E6E0D8] rounded bg-[#FAF7F0] w-28"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold text-[#292522] block mb-1">
+                    Valid Until
+                  </label>
+                  <input
+                    type="date"
+                    value={newCouponValidUntil}
+                    onChange={(e) => setNewCouponValidUntil(e.target.value)}
+                    className="p-2 border border-[#E6E0D8] rounded bg-[#FAF7F0]"
                   />
                 </div>
                 <button
@@ -3552,10 +5434,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                 </button>
               </form>
 
-              {/* Coupons list */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {coupons.map((cp) => (
-                  <div key={cp.id} className="bg-white p-5 rounded-xl border border-[#E6E0D8] space-y-2 shadow-xs">
+                  <div
+                    key={cp.id}
+                    className="bg-white p-5 rounded-xl border border-[#E6E0D8] space-y-2 shadow-xs"
+                  >
                     <div className="flex justify-between items-start">
                       <span className="font-mono font-bold text-base text-[#641D32] bg-[#FAF7F0] px-2 py-0.5 rounded border border-[#E6E0D8]">
                         {cp.code}
@@ -3566,7 +5450,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                     </div>
                     <p className="text-xs text-[#766B61]">{cp.description}</p>
                     <div className="text-[11px] text-[#766B61] pt-2 border-t border-[#E6E0D8]">
-                      Min Order: ₹{Math.round(cp.minOrderValuePaise / 100).toLocaleString('en-IN')} · Redemptions: {cp.usedCount}
+                      Min Order: ₹
+                      {Math.round(cp.minOrderValuePaise / 100).toLocaleString(
+                        "en-IN",
+                      )}{" "}
+                      · Used: {cp.usedCount}/{cp.usageLimit} · Until{" "}
+                      {cp.validUntil}
                     </div>
                   </div>
                 ))}
@@ -3575,19 +5464,23 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
           )}
 
           {/* 8. SETTINGS */}
-          {activeTab === 'settings' && (
+          {activeTab === "settings" && (
             <div className="space-y-6 max-w-4xl">
-              <div>
-                <h2 className="text-2xl font-serif font-bold text-[#292522]">Store Configuration & Policies</h2>
-                <p className="text-xs text-[#766B61] mt-0.5">Control announcement banner messages, business address, and shipping fees.</p>
-              </div>
+              {sectionHeader(
+                "Store Configuration & Policies",
+                "Control announcement banner messages, business address, and contact details.",
+              )}
 
-              {/* Rotating Announcement Bar Manager */}
               <div className="bg-white p-6 rounded-xl border border-[#E6E0D8] space-y-4 shadow-xs">
-                <h3 className="text-sm font-serif font-bold text-[#292522]">Homepage Announcement Bar Messages</h3>
+                <h3 className="text-sm font-serif font-bold text-[#292522]">
+                  Homepage Announcement Bar Messages
+                </h3>
                 <div className="space-y-2">
-                  {settings.announcementMessages.map((msg, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2.5 bg-[#FAF7F0] rounded border border-[#E6E0D8] text-xs">
+                  {(settings.announcementMessages || []).map((msg, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-2.5 bg-[#FAF7F0] rounded border border-[#E6E0D8] text-xs"
+                    >
                       <span>{msg}</span>
                       <button
                         onClick={() => handleRemoveAnnouncement(idx)}
@@ -3598,7 +5491,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                     </div>
                   ))}
                 </div>
-
                 <div className="flex gap-2 pt-2">
                   <input
                     type="text"
@@ -3616,35 +5508,60 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                 </div>
               </div>
 
-              {/* Business Contact & Shipping */}
               <div className="bg-white p-6 rounded-xl border border-[#E6E0D8] space-y-4 shadow-xs text-xs">
-                <h3 className="text-sm font-serif font-bold text-[#292522]">Brand & Shipping Rules</h3>
+                <h3 className="text-sm font-serif font-bold text-[#292522]">
+                  Brand & Contact
+                </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="font-semibold block mb-1">Business Phone & WhatsApp</label>
+                    <label className="font-semibold block mb-1">
+                      Business Phone & WhatsApp
+                    </label>
                     <input
                       type="text"
                       value={settings.businessPhone}
-                      onChange={(e) => storeService.updateSettings({ businessPhone: e.target.value, whatsappContact: e.target.value }, 'Owner')}
-                      className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+                      onChange={(e) =>
+                        storeService.updateSettings(
+                          {
+                            businessPhone: e.target.value,
+                            whatsappContact: e.target.value,
+                          },
+                          by,
+                        )
+                      }
+                      className={inputCls}
                     />
                   </div>
                   <div>
-                    <label className="font-semibold block mb-1">Instagram Handle</label>
+                    <label className="font-semibold block mb-1">
+                      Instagram Handle
+                    </label>
                     <input
                       type="text"
                       value={settings.instagramHandle}
-                      onChange={(e) => storeService.updateSettings({ instagramHandle: e.target.value }, 'Owner')}
-                      className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+                      onChange={(e) =>
+                        storeService.updateSettings(
+                          { instagramHandle: e.target.value },
+                          by,
+                        )
+                      }
+                      className={inputCls}
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="font-semibold block mb-1">Physical Boutique Address</label>
+                    <label className="font-semibold block mb-1">
+                      Physical Boutique Address
+                    </label>
                     <input
                       type="text"
                       value={settings.businessAddress}
-                      onChange={(e) => storeService.updateSettings({ businessAddress: e.target.value }, 'Owner')}
-                      className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+                      onChange={(e) =>
+                        storeService.updateSettings(
+                          { businessAddress: e.target.value },
+                          by,
+                        )
+                      }
+                      className={inputCls}
                     />
                   </div>
                 </div>
@@ -3652,23 +5569,27 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
             </div>
           )}
 
-          {/* 9. AUDIT LOGS */}
-          {activeTab === 'audit' && (
+          {/* 9. AUDIT */}
+          {activeTab === "audit" && (
             <div className="space-y-6 max-w-6xl">
-              <div>
-                <h2 className="text-2xl font-serif font-bold text-[#292522]">Security & Action Audit Logs</h2>
-                <p className="text-xs text-[#766B61] mt-0.5">Chronological record of every administrative action, stock mutation, and order transition.</p>
-              </div>
-
+              {sectionHeader(
+                "Security & Action Audit Logs",
+                "Chronological record of every administrative action, stock mutation, and order transition.",
+              )}
               <div className="bg-white rounded-xl border border-[#E6E0D8] p-5 shadow-xs">
                 <div className="space-y-3 max-h-[600px] overflow-y-auto">
                   {auditLogs.map((log) => (
-                    <div key={log.id} className="p-3 bg-[#FAF7F0] rounded border border-[#E6E0D8] text-xs flex items-start justify-between">
+                    <div
+                      key={log.id}
+                      className="p-3 bg-[#FAF7F0] rounded border border-[#E6E0D8] text-xs flex items-start justify-between"
+                    >
                       <div>
                         <span className="font-semibold text-[#641D32] uppercase tracking-wider text-[10px]">
                           [{log.entityType}]
                         </span>
-                        <p className="font-medium text-[#292522] mt-0.5">{log.details}</p>
+                        <p className="font-medium text-[#292522] mt-0.5">
+                          {log.details}
+                        </p>
                         <span className="text-[#766B61] text-[11px] block mt-0.5">
                           By: {log.performedBy}
                         </span>
@@ -3682,39 +5603,45 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
               </div>
             </div>
           )}
-
         </main>
       </div>
 
       {/* Stock Adjustment Dialog */}
       {stockAdjustItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <form onSubmit={handlePerformStockAdjustment} className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-[#E6E0D8] space-y-4 text-xs">
+        <div className={modalShell}>
+          <form
+            onSubmit={handlePerformStockAdjustment}
+            className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-[#E6E0D8] space-y-4 text-xs"
+          >
             <h3 className="text-base font-serif font-bold text-[#292522]">
               Adjust Handloom Stock: {stockAdjustItem.productName}
             </h3>
-            <p className="text-[#766B61]">Color: {stockAdjustItem.colorName} · Current on-hand: {stockAdjustItem.currentStock} units</p>
-
+            <p className="text-[#766B61]">
+              Color: {stockAdjustItem.colorName} · Current on-hand:{" "}
+              {stockAdjustItem.currentStock} units
+            </p>
             <div>
-              <label className="font-semibold block mb-1">Quantity Change (+ to add, - to subtract)</label>
+              <label className="font-semibold block mb-1">
+                Quantity Change (+ to add, - to subtract)
+              </label>
               <input
                 type="number"
                 value={adjustmentAmount}
                 onChange={(e) => setAdjustmentAmount(Number(e.target.value))}
-                className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded font-bold"
+                className={`${inputCls} font-bold`}
               />
             </div>
-
             <div>
-              <label className="font-semibold block mb-1">Reason for Adjustment</label>
+              <label className="font-semibold block mb-1">
+                Reason for Adjustment
+              </label>
               <input
                 type="text"
                 value={adjustmentReason}
                 onChange={(e) => setAdjustmentReason(e.target.value)}
-                className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+                className={inputCls}
               />
             </div>
-
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
@@ -3734,15 +5661,273 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
         </div>
       )}
 
-      {/* Add / Edit Saree Modal */}
-      {isProductModalOpen && editingProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <form onSubmit={handleSaveProduct} className="bg-white rounded-xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl border border-[#E6E0D8] space-y-4 max-h-[90vh] overflow-y-auto text-xs">
+      {/* Category Modal (Add / Edit) */}
+      {editingCategory && (
+        <div className={modalShell}>
+          <form
+            onSubmit={handleSaveCategory}
+            className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-[#E6E0D8] space-y-4 text-xs"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-[#E6E0D8]">
               <h3 className="text-base font-serif font-bold text-[#292522]">
-                {editingProduct.id ? 'Edit Saree Specifications' : 'Add New Saree to Catalog'}
+                {editingCategory.id ? "Edit Category" : "Add Category"}
               </h3>
-              <button type="button" onClick={closeProductModal} className="text-[#766B61]">✕</button>
+              <button
+                type="button"
+                onClick={closeCategoryModal}
+                className="text-[#766B61]"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div>
+              <label className="font-semibold block mb-1">Category Name</label>
+              <input
+                type="text"
+                required
+                value={editingCategory.name || ""}
+                onChange={(e) => {
+                  const name = e.target.value;
+                  setEditingCategory((prev) =>
+                    prev ? { ...prev, name } : prev,
+                  );
+                }}
+                placeholder="e.g. Paithani Sarees"
+                className={inputCls}
+              />
+            </div>
+
+            <ImageUploadField
+              label="Category Image (round photo on homepage)"
+              value={editingCategory.imageUrl || ""}
+              onChange={(imageUrl) =>
+                setEditingCategory((prev) =>
+                  prev ? { ...prev, imageUrl } : prev,
+                )
+              }
+              onUploadingChange={setCatUploading}
+            />
+
+            <label className="flex items-center gap-2 font-semibold">
+              <input
+                type="checkbox"
+                checked={editingCategory.isActive !== false}
+                onChange={(e) => {
+                  const isActive = e.target.checked;
+                  setEditingCategory((prev) =>
+                    prev ? { ...prev, isActive } : prev,
+                  );
+                }}
+              />
+              Show on homepage
+            </label>
+
+            {catError && (
+              <p className="rounded border border-amber-200 bg-amber-50 p-2 text-amber-800">
+                {catError}
+              </p>
+            )}
+
+            <div className="flex gap-2 pt-2 border-t border-[#E6E0D8]">
+              <button
+                type="button"
+                onClick={closeCategoryModal}
+                className="flex-1 py-2 border border-[#E6E0D8] rounded font-medium hover:bg-[#FAF7F0]"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={catUploading}
+                className="flex-1 py-2 bg-[#641D32] hover:bg-[#4A1223] text-white font-semibold rounded disabled:opacity-50"
+              >
+                {catUploading
+                  ? "Uploading…"
+                  : editingCategory.id
+                    ? "Update Category"
+                    : "Save Category"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Banner Modal */}
+      {editingBanner && (
+        <div className={modalShell}>
+          <form
+            onSubmit={handleSaveBanner}
+            className="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl border border-[#E6E0D8] space-y-4 max-h-[90vh] overflow-y-auto text-xs"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[#E6E0D8]">
+              <h3 className="text-base font-serif font-bold text-[#292522]">
+                {editingBanner.id ? "Edit Banner" : "Add Banner"}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingBanner(null)}
+                className="text-[#766B61]"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div>
+              <label className="font-semibold block mb-1">Badge Text</label>
+              <input
+                type="text"
+                value={editingBanner.badgeText || ""}
+                onChange={(e) => {
+                  const badgeText = e.target.value;
+                  setEditingBanner((prev) =>
+                    prev ? { ...prev, badgeText } : prev,
+                  );
+                }}
+                placeholder="e.g. Festive Collection"
+                className={inputCls}
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold block mb-1">Heading</label>
+              <input
+                type="text"
+                required
+                value={editingBanner.heading || ""}
+                onChange={(e) => {
+                  const heading = e.target.value;
+                  setEditingBanner((prev) =>
+                    prev ? { ...prev, heading } : prev,
+                  );
+                }}
+                placeholder="e.g. Pure Paithani Silk Sarees"
+                className={inputCls}
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold block mb-1">Subtitle</label>
+              <textarea
+                rows={2}
+                value={editingBanner.subtitle || ""}
+                onChange={(e) => {
+                  const subtitle = e.target.value;
+                  setEditingBanner((prev) =>
+                    prev ? { ...prev, subtitle } : prev,
+                  );
+                }}
+                className={inputCls}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="font-semibold block mb-1">Button Text</label>
+                <input
+                  type="text"
+                  value={editingBanner.ctaText || ""}
+                  onChange={(e) => {
+                    const ctaText = e.target.value;
+                    setEditingBanner((prev) =>
+                      prev ? { ...prev, ctaText } : prev,
+                    );
+                  }}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className="font-semibold block mb-1">Button Link</label>
+                <input
+                  type="text"
+                  value={editingBanner.ctaLink || ""}
+                  onChange={(e) => {
+                    const ctaLink = e.target.value;
+                    setEditingBanner((prev) =>
+                      prev ? { ...prev, ctaLink } : prev,
+                    );
+                  }}
+                  placeholder="/catalog"
+                  className={inputCls}
+                />
+              </div>
+            </div>
+
+            <ImageUploadField
+              label="Banner Image (wide photo recommended)"
+              value={editingBanner.imageUrl || ""}
+              onChange={(imageUrl) =>
+                setEditingBanner((prev) =>
+                  prev ? { ...prev, imageUrl } : prev,
+                )
+              }
+              onUploadingChange={setBannerUploading}
+            />
+
+            <label className="flex items-center gap-2 font-semibold">
+              <input
+                type="checkbox"
+                checked={editingBanner.isActive !== false}
+                onChange={(e) => {
+                  const isActive = e.target.checked;
+                  setEditingBanner((prev) =>
+                    prev ? { ...prev, isActive } : prev,
+                  );
+                }}
+              />
+              Show on homepage
+            </label>
+
+            {bannerError && (
+              <p className="rounded border border-amber-200 bg-amber-50 p-2 text-amber-800">
+                {bannerError}
+              </p>
+            )}
+
+            <div className="flex gap-2 pt-2 border-t border-[#E6E0D8]">
+              <button
+                type="button"
+                onClick={() => setEditingBanner(null)}
+                className="flex-1 py-2 border border-[#E6E0D8] rounded font-medium hover:bg-[#FAF7F0]"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={bannerUploading}
+                className="flex-1 py-2 bg-[#641D32] hover:bg-[#4A1223] text-white font-semibold rounded disabled:opacity-50"
+              >
+                {bannerUploading
+                  ? "Uploading…"
+                  : editingBanner.id
+                    ? "Update Banner"
+                    : "Save Banner"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Add / Edit Saree Modal */}
+      {isProductModalOpen && editingProduct && (
+        <div className={modalShell}>
+          <form
+            onSubmit={handleSaveProduct}
+            className="bg-white rounded-xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl border border-[#E6E0D8] space-y-4 max-h-[90vh] overflow-y-auto text-xs"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[#E6E0D8]">
+              <h3 className="text-base font-serif font-bold text-[#292522]">
+                {editingProduct.id
+                  ? "Edit Saree Specifications"
+                  : "Add New Saree to Catalog"}
+              </h3>
+              <button
+                type="button"
+                onClick={closeProductModal}
+                className="text-[#766B61]"
+              >
+                ✕
+              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -3751,26 +5936,66 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                 <input
                   type="text"
                   required
-                  value={editingProduct.name || ''}
+                  value={editingProduct.name || ""}
                   onChange={(e) => {
                     const name = e.target.value;
-                    setEditingProduct((prev) => (prev ? { ...prev, name } : prev));
+                    setEditingProduct((prev) =>
+                      prev ? { ...prev, name } : prev,
+                    );
                   }}
                   placeholder="e.g. Royal Kolhapuri Paithani Pure Silk Saree"
-                  className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+                  className={inputCls}
                 />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="font-semibold block mb-1">
+                  Categories (select at least one)
+                </label>
+                {categories.length === 0 ? (
+                  <p className="text-amber-800">
+                    Create a category first in the Categories tab.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {categories.map((c) => {
+                      const checked =
+                        editingProduct.categoryIds?.includes(c.id) ?? false;
+                      return (
+                        <label
+                          key={c.id}
+                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded border cursor-pointer ${
+                            checked
+                              ? "bg-[#641D32] text-white border-[#641D32]"
+                              : "bg-[#FAF7F0] border-[#E6E0D8]"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="hidden"
+                            checked={checked}
+                            onChange={() => toggleProductCategory(c)}
+                          />
+                          {c.name}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div>
                 <label className="font-semibold block mb-1">Fabric</label>
                 <input
                   type="text"
-                  value={editingProduct.fabric || ''}
+                  value={editingProduct.fabric || ""}
                   onChange={(e) => {
                     const fabric = e.target.value;
-                    setEditingProduct((prev) => (prev ? { ...prev, fabric } : prev));
+                    setEditingProduct((prev) =>
+                      prev ? { ...prev, fabric } : prev,
+                    );
                   }}
-                  className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+                  className={inputCls}
                 />
               </div>
 
@@ -3778,22 +6003,28 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                 <label className="font-semibold block mb-1">Occasion</label>
                 <input
                   type="text"
-                  value={editingProduct.occasion || ''}
+                  value={editingProduct.occasion || ""}
                   onChange={(e) => {
                     const occasion = e.target.value;
-                    setEditingProduct((prev) => (prev ? { ...prev, occasion } : prev));
+                    setEditingProduct((prev) =>
+                      prev ? { ...prev, occasion } : prev,
+                    );
                   }}
-                  className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+                  className={inputCls}
                 />
               </div>
 
-              {/* Colours: price, stock and 2 to 4 angle photos for each colour */}
               <div className="sm:col-span-2 space-y-2">
-                <label className="font-semibold block">Colours, prices & photos</label>
+                <label className="font-semibold block">
+                  Colours, prices & photos (at least 1 photo per colour, add as
+                  many as you like)
+                </label>
                 <ProductVariantsEditor
                   value={editingProduct.variants ?? []}
                   onChange={(variants) =>
-                    setEditingProduct((prev) => (prev ? { ...prev, variants } : prev))
+                    setEditingProduct((prev) =>
+                      prev ? { ...prev, variants } : prev,
+                    )
                   }
                   onUploadingChange={setUploading}
                   allowStockEdit={!editingProduct.id}
@@ -3801,21 +6032,27 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="font-semibold block mb-1">Detailed Weaving Description</label>
+                <label className="font-semibold block mb-1">
+                  Detailed Weaving Description
+                </label>
                 <textarea
                   rows={3}
-                  value={editingProduct.description || ''}
+                  value={editingProduct.description || ""}
                   onChange={(e) => {
                     const description = e.target.value;
-                    setEditingProduct((prev) => (prev ? { ...prev, description } : prev));
+                    setEditingProduct((prev) =>
+                      prev ? { ...prev, description } : prev,
+                    );
                   }}
-                  className="w-full p-2 bg-[#FAF7F0] border border-[#E6E0D8] rounded"
+                  className={inputCls}
                 />
               </div>
             </div>
 
             {formError && (
-              <p className="rounded border border-amber-200 bg-amber-50 p-2 text-amber-800">{formError}</p>
+              <p className="rounded border border-amber-200 bg-amber-50 p-2 text-amber-800">
+                {formError}
+              </p>
             )}
 
             <div className="flex gap-2 pt-4 border-t border-[#E6E0D8]">
@@ -3831,7 +6068,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToStore }) => {
                 disabled={uploading}
                 className="flex-1 py-2 bg-[#641D32] hover:bg-[#4A1223] text-white font-semibold rounded disabled:opacity-50"
               >
-                {uploading ? 'Uploading photos…' : 'Save Saree'}
+                {uploading ? "Uploading photos…" : "Save Saree"}
               </button>
             </div>
           </form>

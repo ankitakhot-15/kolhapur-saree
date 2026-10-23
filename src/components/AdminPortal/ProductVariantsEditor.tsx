@@ -256,34 +256,45 @@ export function newVariant(initialStock = 0): Variant {
 }
 
 /** Returns an error message, or '' when everything is valid. */
-export function validateVariants(variants: Variant[] | undefined): string {
-  if (!variants || variants.length === 0)
-    return "Add at least one colour variant.";
-
-  for (let i = 0; i < variants.length; i++) {
-    const v = variants[i];
-    const label = v.colorName?.trim() ? `"${v.colorName}"` : `Colour ${i + 1}`;
-
-    if (!v.colorName?.trim()) return `Colour ${i + 1}: enter a colour name.`;
-    if (!v.sku?.trim()) return `${label}: enter a SKU.`;
-    if (!(v.sellingPricePaise > 0)) return `${label}: enter a selling price.`;
-    if (!(v.originalPricePaise > 0))
-      return `${label}: enter the original price.`;
-    if (v.sellingPricePaise > v.originalPricePaise) {
-      return `${label}: selling price cannot be higher than the original price.`;
-    }
-    const photos = (v.images || []).filter(Boolean);
-    if (photos.length < MIN_IMAGES) {
-      return `${label}: add at least ${MIN_IMAGES} photos (different angles).`;
-    }
+export function validateVariants(variants: any[]): string {
+  if (!variants.length) return "Add at least one colour.";
+  for (const v of variants) {
+    if (!v.colorName?.trim()) return "Every colour needs a name.";
+    if (!v.images || v.images.length < 1)
+      return `Add at least 1 photo for "${v.colorName}".`;
+    if (!(v.sellingPricePaise > 0))
+      return `Set a selling price for "${v.colorName}".`;
   }
-
-  const skus = variants.map((v) => v.sku.trim().toLowerCase());
-  if (new Set(skus).size !== skus.length)
-    return "Two colours have the same SKU. SKUs must be unique.";
-
   return "";
 }
+// export function validateVariants(variants: Variant[] | undefined): string {
+//   if (!variants || variants.length === 0)
+//     return "Add at least one colour variant.";
+
+//   for (let i = 0; i < variants.length; i++) {
+//     const v = variants[i];
+//     const label = v.colorName?.trim() ? `"${v.colorName}"` : `Colour ${i + 1}`;
+
+//     if (!v.colorName?.trim()) return `Colour ${i + 1}: enter a colour name.`;
+//     if (!v.sku?.trim()) return `${label}: enter a SKU.`;
+//     if (!(v.sellingPricePaise > 0)) return `${label}: enter a selling price.`;
+//     if (!(v.originalPricePaise > 0))
+//       return `${label}: enter the original price.`;
+//     if (v.sellingPricePaise > v.originalPricePaise) {
+//       return `${label}: selling price cannot be higher than the original price.`;
+//     }
+//     const photos = (v.images || []).filter(Boolean);
+//     if (photos.length < MIN_IMAGES) {
+//       return `${label}: add at least ${MIN_IMAGES} photos (different angles).`;
+//     }
+//   }
+
+//   const skus = variants.map((v) => v.sku.trim().toLowerCase());
+//   if (new Set(skus).size !== skus.length)
+//     return "Two colours have the same SKU. SKUs must be unique.";
+
+//   return "";
+// }
 
 interface Props {
   value: Variant[];
