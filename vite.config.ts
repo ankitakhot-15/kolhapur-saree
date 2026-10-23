@@ -1,11 +1,12 @@
 
+
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import type { IncomingMessage, ServerResponse } from 'http';
-import { defineConfig, loadEnv, Plugin } from 'vite';
 import nodemailer from 'nodemailer';
-import { cloudinaryPlugin } from './src/cloudinary-plugin';
+import { cloudinaryPlugin } from './src/cloudinary-plugin.ts';
+import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from 'vite';
 
 type Env = Record<string, string>;
 
@@ -25,7 +26,7 @@ function escapeHtml(value: unknown): string {
 
 function inr(paise: unknown): string {
   const n = Number(paise);
-  return '\u20B9' + (Number.isFinite(n) ? Math.round(n / 100) : 0).toLocaleString('en-IN');
+  return '₹' + (Number.isFinite(n) ? Math.round(n / 100) : 0).toLocaleString('en-IN');
 }
 
 function sendJson(res: ServerResponse, status: number, payload: unknown) {
@@ -149,22 +150,22 @@ function buildOtpEmail(subject: string, otp: string, minutes: number, text?: str
 /* ------------------------------------------------------------------ */
 
 const STATUS_COPY: Record<string, { emoji: string; headline: string; message: string }> = {
-  'Pending Payment': { emoji: '\u23F3', headline: 'Waiting for your payment', message: 'We have reserved your sarees. Please complete the payment to confirm your order.' },
-  'Payment Confirmed': { emoji: '\uD83D\uDCB3', headline: 'Payment received', message: 'Thank you! We have received your payment.' },
-  'Order Confirmed': { emoji: '\u2705', headline: 'Your order is confirmed', message: 'Thank you for shopping with us! Your order is confirmed and our team will start preparing your saree.' },
-  'Processing': { emoji: '\uD83E\uDDF5', headline: 'We are preparing your order', message: 'Your handloom saree is being quality-checked and prepared by our team.' },
-  'Packed': { emoji: '\uD83D\uDCE6', headline: 'Your order is packed', message: 'Your saree has been carefully packed and will be handed over to the courier soon.' },
-  'Shipped': { emoji: '\uD83D\uDE9A', headline: 'Your order has been shipped', message: 'Good news! Your order is on its way to you.' },
-  'Out for Delivery': { emoji: '\uD83D\uDEF5', headline: 'Out for delivery', message: 'Your order is out for delivery and should reach you today. Please keep your phone nearby.' },
-  'Delivered': { emoji: '\uD83C\uDF89', headline: 'Your order has been delivered', message: 'We hope you love your saree! Thank you for choosing Kolhapuri Fashion Saree.' },
-  'Cancelled': { emoji: '\u274C', headline: 'Your order has been cancelled', message: 'Your order has been cancelled. If you did not ask for this, please contact us.' },
-  'Refund Pending': { emoji: '\uD83D\uDCB8', headline: 'Refund in progress', message: 'Your order was cancelled and we are processing your refund to the original payment method.' },
-  'Refunded': { emoji: '\u2705', headline: 'Your refund is complete', message: 'Your refund has been processed to your original payment method. It may take a few days to show in your account.' }
+  'Pending Payment': { emoji: '⏳', headline: 'Waiting for your payment', message: 'We have reserved your sarees. Please complete the payment to confirm your order.' },
+  'Payment Confirmed': { emoji: '💳', headline: 'Payment received', message: 'Thank you! We have received your payment.' },
+  'Order Confirmed': { emoji: '✅', headline: 'Your order is confirmed', message: 'Thank you for shopping with us! Your order is confirmed and our team will start preparing your saree.' },
+  'Processing': { emoji: '🧵', headline: 'We are preparing your order', message: 'Your handloom saree is being quality-checked and prepared by our team.' },
+  'Packed': { emoji: '📦', headline: 'Your order is packed', message: 'Your saree has been carefully packed and will be handed over to the courier soon.' },
+  'Shipped': { emoji: '🚚', headline: 'Your order has been shipped', message: 'Good news! Your order is on its way to you.' },
+  'Out for Delivery': { emoji: '🛵', headline: 'Out for delivery', message: 'Your order is out for delivery and should reach you today. Please keep your phone nearby.' },
+  'Delivered': { emoji: '🎉', headline: 'Your order has been delivered', message: 'We hope you love your saree! Thank you for choosing Kolhapuri Fashion Saree.' },
+  'Cancelled': { emoji: '❌', headline: 'Your order has been cancelled', message: 'Your order has been cancelled. If you did not ask for this, please contact us.' },
+  'Refund Pending': { emoji: '💸', headline: 'Refund in progress', message: 'Your order was cancelled and we are processing your refund to the original payment method.' },
+  'Refunded': { emoji: '✅', headline: 'Your refund is complete', message: 'Your refund has been processed to your original payment method. It may take a few days to show in your account.' }
 };
 
 function buildStatusEmail(p: any) {
   const status = String(p.status || 'Updated').slice(0, 40);
-  const copy = STATUS_COPY[status] || { emoji: '\uD83D\uDCCC', headline: `Order status: ${status}`, message: 'The status of your order has been updated.' };
+  const copy = STATUS_COPY[status] || { emoji: '📌', headline: `Order status: ${status}`, message: 'The status of your order has been updated.' };
   const orderNumber = String(p.orderNumber || '').slice(0, 40);
   const customerName = String(p.customerName || 'Customer').slice(0, 80);
   const note = String(p.note || '').slice(0, 500);
@@ -244,50 +245,99 @@ function buildStatusEmail(p: any) {
 /* ------------------------------------------------------------------ */
 /* Dev-server plugin with two endpoints                                */
 /* ------------------------------------------------------------------ */
-
 function emailDispatcherPlugin(env: Env): Plugin {
-  return {
-    name: 'email-dispatcher',
-    configureServer(server) {
-      // 1) OTP emails
-      server.middlewares.use('/api/v1/send-email', async (req, res) => {
-        if (req.method !== 'POST') return sendJson(res, 405, { success: false, error: 'Method not allowed' });
-        try {
-          const { to, subject, text, otp, validMinutes } = await readJson(req);
+  // 1) OTP emails
+  const sendEmailHandler = async (req: IncomingMessage, res: ServerResponse) => {
+    if (req.method !== 'POST') return sendJson(res, 405, { success: false, error: 'Method not allowed' });
+    try {
+      const { to, subject, text, otp, validMinutes } = await readJson(req);
 
-          if (!to || !EMAIL_RE.test(to)) return sendJson(res, 400, { success: false, error: 'Valid "to" email is required' });
-          if (!otp || !/^\d{6}$/.test(String(otp))) return sendJson(res, 400, { success: false, error: 'A 6-digit "otp" is required' });
+      if (!to || !EMAIL_RE.test(to)) return sendJson(res, 400, { success: false, error: 'Valid "to" email is required' });
+      if (!otp || !/^\d{6}$/.test(String(otp))) return sendJson(res, 400, { success: false, error: 'A 6-digit "otp" is required' });
 
-          const minutes = Number.isFinite(validMinutes) && validMinutes >= 1 && validMinutes <= 60 ? Math.round(validMinutes) : 10;
-          const mail = buildOtpEmail(String(subject || 'Your Kolhapuri Fashion Saree verification code').slice(0, 200), String(otp), minutes, text);
+      const minutes = Number.isFinite(validMinutes) && validMinutes >= 1 && validMinutes <= 60 ? Math.round(validMinutes) : 10;
+      const mail = buildOtpEmail(String(subject || 'Your Kolhapuri Fashion Saree verification code').slice(0, 200), String(otp), minutes, text);
 
-          const result = await deliver(getMailer(env), { to, ...mail }, 'OTP email');
-          sendJson(res, 200, { success: true, ...result, to });
-        } catch (err: any) {
-          sendJson(res, 500, { success: false, error: err?.message || 'Server error' });
-        }
-      });
-
-      // 2) Order status emails (Packed, Shipped, Delivered, ...)
-      server.middlewares.use('/api/v1/send-order-status', async (req, res) => {
-        if (req.method !== 'POST') return sendJson(res, 405, { success: false, error: 'Method not allowed' });
-        try {
-          const payload = await readJson(req);
-          const to = String(payload.to || '').trim();
-
-          if (!EMAIL_RE.test(to)) return sendJson(res, 400, { success: false, error: 'Valid "to" email is required' });
-          if (!payload.orderNumber || !payload.status) return sendJson(res, 400, { success: false, error: '"orderNumber" and "status" are required' });
-
-          const mail = buildStatusEmail(payload);
-          const result = await deliver(getMailer(env), { to, ...mail }, `Status email (${payload.status}, ${payload.orderNumber})`);
-          sendJson(res, 200, { success: true, ...result, to });
-        } catch (err: any) {
-          sendJson(res, 500, { success: false, error: err?.message || 'Server error' });
-        }
-      });
+      const result = await deliver(getMailer(env), { to, ...mail }, 'OTP email');
+      sendJson(res, 200, { success: true, ...result, to });
+    } catch (err: any) {
+      sendJson(res, 500, { success: false, error: err?.message || 'Server error' });
     }
   };
+
+  // 2) Order status emails (Packed, Shipped, Delivered, ...)
+  const sendOrderStatusHandler = async (req: IncomingMessage, res: ServerResponse) => {
+    if (req.method !== 'POST') return sendJson(res, 405, { success: false, error: 'Method not allowed' });
+    try {
+      const payload = await readJson(req);
+      const to = String(payload.to || '').trim();
+
+      if (!EMAIL_RE.test(to)) return sendJson(res, 400, { success: false, error: 'Valid "to" email is required' });
+      if (!payload.orderNumber || !payload.status) return sendJson(res, 400, { success: false, error: '"orderNumber" and "status" are required' });
+
+      const mail = buildStatusEmail(payload);
+      const result = await deliver(getMailer(env), { to, ...mail }, `Status email (${payload.status}, ${payload.orderNumber})`);
+      sendJson(res, 200, { success: true, ...result, to });
+    } catch (err: any) {
+      sendJson(res, 500, { success: false, error: err?.message || 'Server error' });
+    }
+  };
+
+  // Shared by the dev server and the preview server
+  const register = (server: { middlewares: ViteDevServer['middlewares'] }) => {
+    server.middlewares.use('/api/v1/send-email', sendEmailHandler);
+    server.middlewares.use('/api/v1/send-order-status', sendOrderStatusHandler);
+  };
+
+  return {
+    name: 'email-dispatcher',
+    configureServer: register,
+    configurePreviewServer: register
+  };
 }
+// function emailDispatcherPlugin(env: Env): Plugin {
+//   return {
+//     name: 'email-dispatcher',
+//     configureServer(server) {
+//       // 1) OTP emails
+//       server.middlewares.use('/api/v1/send-email', async (req, res) => {
+//         if (req.method !== 'POST') return sendJson(res, 405, { success: false, error: 'Method not allowed' });
+//         try {
+//           const { to, subject, text, otp, validMinutes } = await readJson(req);
+
+//           if (!to || !EMAIL_RE.test(to)) return sendJson(res, 400, { success: false, error: 'Valid "to" email is required' });
+//           if (!otp || !/^\d{6}$/.test(String(otp))) return sendJson(res, 400, { success: false, error: 'A 6-digit "otp" is required' });
+
+//           const minutes = Number.isFinite(validMinutes) && validMinutes >= 1 && validMinutes <= 60 ? Math.round(validMinutes) : 10;
+//           const mail = buildOtpEmail(String(subject || 'Your Kolhapuri Fashion Saree verification code').slice(0, 200), String(otp), minutes, text);
+
+//           const result = await deliver(getMailer(env), { to, ...mail }, 'OTP email');
+//           sendJson(res, 200, { success: true, ...result, to });
+//         } catch (err: any) {
+//           sendJson(res, 500, { success: false, error: err?.message || 'Server error' });
+//         }
+//       });
+
+//       // 2) Order status emails (Packed, Shipped, Delivered, ...)
+//       server.middlewares.use('/api/v1/send-order-status', async (req, res) => {
+//         if (req.method !== 'POST') return sendJson(res, 405, { success: false, error: 'Method not allowed' });
+//         try {
+//           const payload = await readJson(req);
+//           const to = String(payload.to || '').trim();
+
+//           if (!EMAIL_RE.test(to)) return sendJson(res, 400, { success: false, error: 'Valid "to" email is required' });
+//           if (!payload.orderNumber || !payload.status) return sendJson(res, 400, { success: false, error: '"orderNumber" and "status" are required' });
+
+//           const mail = buildStatusEmail(payload);
+//           const result = await deliver(getMailer(env), { to, ...mail }, `Status email (${payload.status}, ${payload.orderNumber})`);
+//           sendJson(res, 200, { success: true, ...result, to });
+//         } catch (err: any) {
+//           sendJson(res, 500, { success: false, error: err?.message || 'Server error' });
+//         }
+//       });
+//     }
+//   };
+// }
 
 export default defineConfig(({ mode }) => {
   // '' prefix = load ALL variables from .env, not just VITE_*
@@ -297,14 +347,16 @@ export default defineConfig(({ mode }) => {
     cwd: process.cwd(),
     mode,
     hasSmtpUser: !!pick(env, 'SMTP_USER'),
-    hasSmtpPass: !!pick(env, 'SMTP_PASS')
+    hasSmtpPass: !!pick(env, 'SMTP_PASS'),
+    hasCloudinaryKey: !!pick(env, 'CLOUDINARY_API_KEY'),
+    hasCloudinarySecret: !!pick(env, 'CLOUDINARY_API_SECRET')
   });
 
   return {
-    plugins: [react(), tailwindcss(), emailDispatcherPlugin(env),cloudinaryPlugin(env)],
+    plugins: [react(), tailwindcss(), emailDispatcherPlugin(env), cloudinaryPlugin(env)],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.')
+        '@': path.resolve(import.meta.dirname, '.')
       }
     },
     server: {
