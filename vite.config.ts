@@ -352,6 +352,19 @@ export default defineConfig(({ mode }) => {
     hasCloudinarySecret: !!pick(env, 'CLOUDINARY_API_SECRET')
   });
 
+//   return {
+//     plugins: [react(), tailwindcss(), emailDispatcherPlugin(env), cloudinaryPlugin(env)],
+//     resolve: {
+//       alias: {
+//         '@': path.resolve(import.meta.dirname, '.')
+//       }
+//     },
+//     server: {
+//       hmr: process.env.DISABLE_HMR !== 'true',
+//       watch: process.env.DISABLE_HMR === 'true' ? null : {}
+//     }
+//   };
+// });
   return {
     plugins: [react(), tailwindcss(), emailDispatcherPlugin(env), cloudinaryPlugin(env)],
     resolve: {
@@ -362,6 +375,9 @@ export default defineConfig(({ mode }) => {
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {}
+    },
+    preview: {
+      allowedHosts: true
     }
   };
 });
